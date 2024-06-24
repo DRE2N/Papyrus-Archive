@@ -5,7 +5,7 @@ Subject: [PATCH] fixup javadoc
 
 
 diff --git a/build.gradle.kts b/build.gradle.kts
-index 80833c13a2d19e31d6f648e7ef5b3456025e767e..9b4694c91649cac4e3e90b837a378c78cd4fb4fb 100644
+index fd39ed209b20c927054b8482c400beeeeab460a3..ff78d9570bc5d9b953472fb727c27146a25e0da7 100644
 --- a/build.gradle.kts
 +++ b/build.gradle.kts
 @@ -6,7 +6,7 @@ plugins {
@@ -16,8 +16,8 @@ index 80833c13a2d19e31d6f648e7ef5b3456025e767e..9b4694c91649cac4e3e90b837a378c78
 +    //withJavadocJar()
  }
  
- val annotationsVersion = "24.0.1"
-@@ -162,6 +162,7 @@ tasks.withType<Javadoc> {
+ val annotationsVersion = "24.1.0"
+@@ -175,6 +175,7 @@ tasks.withType<Javadoc> {
              "sourcepath",
              apiAndDocs.resolvedConfiguration.files.joinToString(separator = File.pathSeparator, transform = File::getPath)
          )

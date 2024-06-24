@@ -3,8 +3,8 @@ import io.papermc.paperweight.util.constants.*
 plugins {
     java
     `maven-publish`
-    id("com.github.johnrengelman.shadow") version "8.1.1" apply false
-    id("io.papermc.paperweight.patcher") version "1.5.11"
+    //id("com.github.johnrengelman.shadow") version "8.1.1" apply false
+    id("io.papermc.paperweight.patcher") version "1.7.1"
 }
 
 repositories {
@@ -15,8 +15,8 @@ repositories {
 }
 
 dependencies {
-    remapper("net.fabricmc:tiny-remapper:0.8.10:fat")
-    decompiler("net.minecraftforge:forgeflower:2.0.627.2")
+    remapper("net.fabricmc:tiny-remapper:0.10.3:fat")
+    decompiler("org.vineflower:vineflower:1.10.1")
     paperclip("io.papermc:paperclip:3.0.3")
 }
 
@@ -26,7 +26,7 @@ allprojects {
 
     java {
         toolchain {
-            languageVersion.set(JavaLanguageVersion.of(17))
+            languageVersion.set(JavaLanguageVersion.of(21))
         }
     }
 }
@@ -34,7 +34,7 @@ allprojects {
 subprojects {
     tasks.withType<JavaCompile> {
         options.encoding = Charsets.UTF_8.name()
-        options.release.set(17);
+        options.release.set(21);
         options.isFailOnError = true;
     }
     tasks.withType<Javadoc> {
@@ -57,29 +57,22 @@ subprojects {
 
     }
 }
-
+val paperMavenPublicUrl = "https://repo.papermc.io/repository/maven-public/"
 paperweight {
-    serverProject.set(project(":papyrus-server"))
+    serverProject = project(":papyrus-server")
 
-    remapRepo.set("https://maven.fabricmc.net/")
-    decompileRepo.set("https://files.minecraftforge.net/maven/")
+    remapRepo = paperMavenPublicUrl
+    decompileRepo = paperMavenPublicUrl
 
-    useStandardUpstream("pufferfish") {
-        url.set(github("pufferfish-gg", "Pufferfish"))
-        ref.set(providers.gradleProperty("pufferfishRef"))
+    usePaperUpstream(providers.gradleProperty("paperCommit")) {
+        withPaperPatcher {
+            apiPatchDir = layout.projectDirectory.dir("patches/api")
+            apiOutputDir = layout.projectDirectory.dir("papyrus-api")
 
-        withStandardPatcher {
-            baseName("pufferfish")
-            apiSourceDirPath.set("pufferfish-api")
-            serverSourceDirPath.set("pufferfish-server")
-
-            apiPatchDir.set(layout.projectDirectory.dir("patches/api"))
-            apiOutputDir.set(layout.projectDirectory.dir("papyrus-api"))
-
-            serverPatchDir.set(layout.projectDirectory.dir("patches/server"))
-            serverOutputDir.set(layout.projectDirectory.dir("papyrus-server"))
+            serverPatchDir = layout.projectDirectory.dir("patches/server")
+            serverOutputDir = layout.projectDirectory.dir("papyrus-server")
         }
-        // Maybe paperweight automatically does this for forks in the future, but currently we have to do it manually
+
         patchTasks.register("generatedApi") {
             isBareDirectory = true
             upstreamDirPath = "paper-api-generator/generated"
@@ -91,7 +84,6 @@ paperweight {
 
 tasks.generateDevelopmentBundle {
     apiCoordinates.set("de.erethon.papyrus:papyrus-api")
-    mojangApiCoordinates.set("io.papermc.paper:paper-mojangapi")
     libraryRepositories.set(
         listOf(
             "https://repo.maven.apache.org/maven2/",

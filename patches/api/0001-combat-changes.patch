@@ -5,18 +5,18 @@ Subject: [PATCH] combat changes
 
 
 diff --git a/src/main/java/org/bukkit/attribute/Attribute.java b/src/main/java/org/bukkit/attribute/Attribute.java
-index 37f93b7e9f722e76631c3e7d3e770526ee0c3926..896eccf8d0c4df01acc2e76d8952e369fa615a49 100644
+index 947874c0172b690e7752e49b7bec64e0c0308515..50199c1879152a5c4e272a09201f4d2a91e8d3c0 100644
 --- a/src/main/java/org/bukkit/attribute/Attribute.java
 +++ b/src/main/java/org/bukkit/attribute/Attribute.java
-@@ -4,6 +4,7 @@ import org.bukkit.Keyed;
- import org.bukkit.NamespacedKey;
+@@ -6,6 +6,7 @@ import org.bukkit.NamespacedKey;
+ import org.bukkit.Translatable;
  import org.jetbrains.annotations.NotNull;
  
 +
  /**
   * Types of attributes which may be present on an {@link Attributable}.
   */
-@@ -64,7 +65,31 @@ public enum Attribute implements Keyed, net.kyori.adventure.translation.Translat
+@@ -134,7 +135,31 @@ public enum Attribute implements Keyed, Translatable, net.kyori.adventure.transl
      /**
       * Chance of a zombie to spawn reinforcements.
       */

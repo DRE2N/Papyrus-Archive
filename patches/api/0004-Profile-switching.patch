@@ -394,7 +394,7 @@ index c4a07139e108bbd54e33d499bb883b6ec6eb8baa..a4ed5621278d74f04a543c8f0405b333
          if (currentTickInterval >= tickInterval) {
              currentTickInterval = 0;
 diff --git a/src/main/java/org/bukkit/entity/Damageable.java b/src/main/java/org/bukkit/entity/Damageable.java
-index 01b179822b7b405b07695d60269bd315f6117e56..70e50f1ee559a9eabf4fa96199f2e86a0eba143e 100644
+index a81d5720f19f15dcffdf346f5f8d4e23cfb7a9ee..894c65c76c639205fb8e9e38258cde67b94c64dd 100644
 --- a/src/main/java/org/bukkit/entity/Damageable.java
 +++ b/src/main/java/org/bukkit/entity/Damageable.java
 @@ -1,6 +1,6 @@
@@ -443,7 +443,7 @@ index 9fe73c563e015c37d2056218599ba21f283ae980..8816c19764150ed1dd406c4f98394b43
 +    void setDamageType(PDamageType type);
  }
 diff --git a/src/main/java/org/bukkit/event/entity/EntityDamageByBlockEvent.java b/src/main/java/org/bukkit/event/entity/EntityDamageByBlockEvent.java
-index 1fb15e2ade8ff3c4d662eca87b078b4577f786e1..01045c40b7d1ed3c80c50abb4537cc0c083727e6 100644
+index 148c4aad384ae8e3b8b22d264a84bddfbcafdf1e..90a5f69d513833f116715f2f546593f92a2dcc81 100644
 --- a/src/main/java/org/bukkit/event/entity/EntityDamageByBlockEvent.java
 +++ b/src/main/java/org/bukkit/event/entity/EntityDamageByBlockEvent.java
 @@ -2,6 +2,8 @@ package org.bukkit.event.entity;
@@ -453,19 +453,19 @@ index 1fb15e2ade8ff3c4d662eca87b078b4577f786e1..01045c40b7d1ed3c80c50abb4537cc0c
 +
 +import de.erethon.papyrus.PDamageType;
  import org.bukkit.block.Block;
+ import org.bukkit.block.BlockState;
  import org.bukkit.damage.DamageSource;
- import org.bukkit.damage.DamageType;
-@@ -37,7 +39,7 @@ public class EntityDamageByBlockEvent extends EntityDamageEvent {
+@@ -38,7 +40,7 @@ public class EntityDamageByBlockEvent extends EntityDamageEvent {
      }
  
-     public EntityDamageByBlockEvent(@Nullable final Block damager, @NotNull final Entity damagee, @NotNull final DamageCause cause, @NotNull final DamageSource damageSource, @NotNull final Map<DamageModifier, Double> modifiers, @NotNull final Map<DamageModifier, ? extends Function<? super Double, Double>> modifierFunctions, final @Nullable org.bukkit.block.BlockState damagerBlockState) { // Paper
+     public EntityDamageByBlockEvent(@Nullable final Block damager, @Nullable final BlockState damagerState, @NotNull final Entity damagee, @NotNull final DamageCause cause, @NotNull final DamageSource damageSource, @NotNull final Map<DamageModifier, Double> modifiers, @NotNull final Map<DamageModifier, ? extends Function<? super Double, Double>> modifierFunctions) {
 -        super(damagee, cause, damageSource, modifiers, modifierFunctions);
 +        super(damagee, cause, damageSource, modifiers, modifierFunctions, PDamageType.PURE);
          this.damager = damager;
-         this.damagerBlockState = damagerBlockState; // Paper
+         this.damagerState = damagerState;
      }
 diff --git a/src/main/java/org/bukkit/event/entity/EntityDamageByEntityEvent.java b/src/main/java/org/bukkit/event/entity/EntityDamageByEntityEvent.java
-index 6b24d1281cb8f0253430c9c1a1323e2670bb9c93..ba0c7115553e15be10531b711f4faaea5aea9689 100644
+index 8ea4be529400b34df3d31b0f17c2d145345523d9..e9a87df62a86ee6ba3f2cabf702df25121b84ae1 100644
 --- a/src/main/java/org/bukkit/event/entity/EntityDamageByEntityEvent.java
 +++ b/src/main/java/org/bukkit/event/entity/EntityDamageByEntityEvent.java
 @@ -2,8 +2,11 @@ package org.bukkit.event.entity;
@@ -516,7 +516,7 @@ index 6b24d1281cb8f0253430c9c1a1323e2670bb9c93..ba0c7115553e15be10531b711f4faaea
  
      /**
 diff --git a/src/main/java/org/bukkit/event/entity/EntityDamageEvent.java b/src/main/java/org/bukkit/event/entity/EntityDamageEvent.java
-index 446b3ffd5caca5344be1c250475679834cd0d4a2..86e66829a073e6bc1c8c38005e6ff78732f83da2 100644
+index ca634147935c3bda8abad5dc73327e51381793a8..65d7f3340103cb5dd35fe78d58dd9a6eba7bcb46 100644
 --- a/src/main/java/org/bukkit/event/entity/EntityDamageEvent.java
 +++ b/src/main/java/org/bukkit/event/entity/EntityDamageEvent.java
 @@ -7,6 +7,8 @@ import com.google.common.collect.ImmutableMap;

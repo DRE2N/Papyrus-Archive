@@ -2006,7 +2006,7 @@ index 0000000000000000000000000000000000000000..8b72dba1a152833a89730155ff166328
 +    }
 +}
 diff --git a/src/main/java/org/bukkit/Server.java b/src/main/java/org/bukkit/Server.java
-index b4f8281d3797ec825a7671f38077cd65d5a1d76e..6c703f4d0e506faa42d357be9b1091d90917c15c 100644
+index bbc4d7d3ca84642828f9a3f788ca26bba900d15b..ac6cfea766cd220f7cc297e94059ff7a799b29b5 100644
 --- a/src/main/java/org/bukkit/Server.java
 +++ b/src/main/java/org/bukkit/Server.java
 @@ -14,6 +14,7 @@ import java.util.Set;
@@ -2017,7 +2017,7 @@ index b4f8281d3797ec825a7671f38077cd65d5a1d76e..6c703f4d0e506faa42d357be9b1091d9
  import org.bukkit.Warning.WarningState;
  import org.bukkit.advancement.Advancement;
  import org.bukkit.block.data.BlockData;
-@@ -2497,4 +2498,8 @@ public interface Server extends PluginMessageRecipient, net.kyori.adventure.audi
+@@ -2540,4 +2541,8 @@ public interface Server extends PluginMessageRecipient, net.kyori.adventure.audi
       */
      boolean isOwnedByCurrentRegion(@NotNull Entity entity);
      // Paper end - Folia region threading API
@@ -2027,10 +2027,10 @@ index b4f8281d3797ec825a7671f38077cd65d5a1d76e..6c703f4d0e506faa42d357be9b1091d9
 +    // Papyrus end
  }
 diff --git a/src/main/java/org/bukkit/attribute/Attribute.java b/src/main/java/org/bukkit/attribute/Attribute.java
-index 896eccf8d0c4df01acc2e76d8952e369fa615a49..e5e1cfa661eaff8dbd135c2d8af7c683cc0f72f6 100644
+index 50199c1879152a5c4e272a09201f4d2a91e8d3c0..8bc1b04386ab2642b74d57d1ee44485c0bea9f92 100644
 --- a/src/main/java/org/bukkit/attribute/Attribute.java
 +++ b/src/main/java/org/bukkit/attribute/Attribute.java
-@@ -79,15 +79,22 @@ public enum Attribute implements Keyed, net.kyori.adventure.translation.Translat
+@@ -149,15 +149,22 @@ public enum Attribute implements Keyed, Translatable, net.kyori.adventure.transl
      ADV_PURE("advantage.pure"),
      ADV_PHYSICAL("advantage.physical"),
      ADV_MAGIC("advantage.magic"),
@@ -2057,7 +2057,7 @@ index 896eccf8d0c4df01acc2e76d8952e369fa615a49..e5e1cfa661eaff8dbd135c2d8af7c683
      COMBAT_HURTINVUL("combat.hurtinvul");
  
 diff --git a/src/main/java/org/bukkit/entity/Damageable.java b/src/main/java/org/bukkit/entity/Damageable.java
-index c4537080ee1875e984356eee42337a1342f4c9a3..01b179822b7b405b07695d60269bd315f6117e56 100644
+index f89edd9c129802f70eac022ff6bf80bef378f5e8..a81d5720f19f15dcffdf346f5f8d4e23cfb7a9ee 100644
 --- a/src/main/java/org/bukkit/entity/Damageable.java
 +++ b/src/main/java/org/bukkit/entity/Damageable.java
 @@ -1,5 +1,6 @@
@@ -2086,7 +2086,7 @@ index c4537080ee1875e984356eee42337a1342f4c9a3..01b179822b7b405b07695d60269bd315
       * Deals the given amount of damage to this entity from a specified
       * {@link DamageSource}.
 diff --git a/src/main/java/org/bukkit/entity/LivingEntity.java b/src/main/java/org/bukkit/entity/LivingEntity.java
-index e67455efc84f1e06d3396291d104ce65fee4591b..4b844cc406bd75704d76dfc94f6d2379138d5ec5 100644
+index a1e54e9d14393a6c0ea57cca854071c5396d9717..fbd899a09f9b05fb13fedc2a73a5c7025fa04b3c 100644
 --- a/src/main/java/org/bukkit/entity/LivingEntity.java
 +++ b/src/main/java/org/bukkit/entity/LivingEntity.java
 @@ -4,6 +4,9 @@ import java.util.Collection;
@@ -2108,7 +2108,7 @@ index e67455efc84f1e06d3396291d104ce65fee4591b..4b844cc406bd75704d76dfc94f6d2379
  
      /**
       * Gets the height of the living entity's eyes above its Location.
-@@ -1256,7 +1259,6 @@ public interface LivingEntity extends Attributable, Damageable, ProjectileSource
+@@ -1391,7 +1394,6 @@ public interface LivingEntity extends Attributable, Damageable, ProjectileSource
       * @param slot the slot
       */
      void broadcastSlotBreak(org.bukkit.inventory.@NotNull EquipmentSlot slot);
@@ -2116,20 +2116,18 @@ index e67455efc84f1e06d3396291d104ce65fee4591b..4b844cc406bd75704d76dfc94f6d2379
      /**
       * Notifies specified players that the item in the slot
       * of this entity broke.
-@@ -1310,4 +1312,8 @@ public interface LivingEntity extends Attributable, Damageable, ProjectileSource
+@@ -1458,4 +1460,6 @@ public interface LivingEntity extends Attributable, Damageable, ProjectileSource
       */
-     void setBodyYaw(float bodyYaw);
-     // Paper end
-+
-+    // Paper end
+     boolean canUseEquipmentSlot(org.bukkit.inventory.@NotNull EquipmentSlot slot);
+     // Paper end - Expose canUseSlot
 +    void sendParsedActionBar(String text);
 +    void sendParsedMessage(String text);
  }
 diff --git a/src/main/java/org/bukkit/entity/Player.java b/src/main/java/org/bukkit/entity/Player.java
-index 254a02ddb5dc867c9dd6c2086791f7ab94247fd3..a43685b3582c61fea5d41fcae0e60e9f7a90f706 100644
+index 7c56182acaf827f4b1a986a61cea8e9960604c98..e37ef08ecc0d4d0efc14e9486a87ddac2821beec 100644
 --- a/src/main/java/org/bukkit/entity/Player.java
 +++ b/src/main/java/org/bukkit/entity/Player.java
-@@ -1407,30 +1407,6 @@ public interface Player extends HumanEntity, Conversable, OfflinePlayer, PluginM
+@@ -1483,30 +1483,6 @@ public interface Player extends HumanEntity, Conversable, OfflinePlayer, PluginM
      /**
       * Sends an Action Bar message to the client.
       *
@@ -2160,7 +2158,7 @@ index 254a02ddb5dc867c9dd6c2086791f7ab94247fd3..a43685b3582c61fea5d41fcae0e60e9f
       * @deprecated use {@link #sendActionBar(net.kyori.adventure.text.Component)}
       */
      @Deprecated
-@@ -1463,7 +1439,7 @@ public interface Player extends HumanEntity, Conversable, OfflinePlayer, PluginM
+@@ -1539,7 +1515,7 @@ public interface Player extends HumanEntity, Conversable, OfflinePlayer, PluginM
      /**
       * Sends an array of components as a single message to the specified screen position of this player
       *
@@ -2169,7 +2167,7 @@ index 254a02ddb5dc867c9dd6c2086791f7ab94247fd3..a43685b3582c61fea5d41fcae0e60e9f
       * @param position the screen position
       * @param components the components to send
       */
-@@ -3492,6 +3468,7 @@ public interface Player extends HumanEntity, Conversable, OfflinePlayer, PluginM
+@@ -3623,6 +3599,7 @@ public interface Player extends HumanEntity, Conversable, OfflinePlayer, PluginM
          /**
           * Sends an array of components as a single message to the specified screen position of this player
           *
