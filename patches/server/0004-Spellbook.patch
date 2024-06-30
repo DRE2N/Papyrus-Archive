@@ -1737,10 +1737,10 @@ index 1d82cfe7af0dc42f88901fb0c44896771fdf8a93..55d41fff605fac1a6eb34e2e96ab0ae5
          // Paper start - move NotePlayEvent call to fix instrument/note changes
          org.bukkit.event.block.NotePlayEvent event = org.bukkit.craftbukkit.event.CraftEventFactory.callNotePlayEvent(world, pos, blockpropertyinstrument, state.getValue(NOTE));
 diff --git a/src/main/java/net/minecraft/world/level/storage/PlayerDataStorage.java b/src/main/java/net/minecraft/world/level/storage/PlayerDataStorage.java
-index 8ab7ca373a885fbe658013c9c6a2e38d32d77bb2..052196cc3c9631d4c769213dc4c92bc83775e527 100644
+index 8ab7ca373a885fbe658013c9c6a2e38d32d77bb2..1e1d09b07da1cb4303008ebafc1ddecc406c0f60 100644
 --- a/src/main/java/net/minecraft/world/level/storage/PlayerDataStorage.java
 +++ b/src/main/java/net/minecraft/world/level/storage/PlayerDataStorage.java
-@@ -35,6 +35,10 @@ public class PlayerDataStorage {
+@@ -35,15 +35,19 @@ public class PlayerDataStorage {
      }
  
      public void save(Player player) {
@@ -1751,6 +1751,19 @@ index 8ab7ca373a885fbe658013c9c6a2e38d32d77bb2..052196cc3c9631d4c769213dc4c92bc8
          if (org.spigotmc.SpigotConfig.disablePlayerDataSaving) return; // Spigot
          try {
              CompoundTag nbttagcompound = player.saveWithoutId(new CompoundTag());
+-            Path path = this.playerDir.toPath();
+-            Path path1 = Files.createTempFile(path, player.getStringUUID() + "-", ".dat");
++            Path path = this.playerDir.toPath().resolve(player.getStringUUID());
++            Path path1 = Files.createTempFile(path, profileID + "-", ".dat");
+ 
+             NbtIo.writeCompressed(nbttagcompound, path1);
+-            Path path2 = path.resolve(player.getStringUUID() + ".dat");
+-            Path path3 = path.resolve(player.getStringUUID() + ".dat_old");
++            Path path2 = path.resolve(profileID + ".dat");
++            Path path3 = path.resolve(profileID + ".dat_old");
+ 
+             Util.safeReplaceFile(path2, path1, path3);
+         } catch (Exception exception) {
 @@ -71,14 +75,14 @@ public class PlayerDataStorage {
      }
  
