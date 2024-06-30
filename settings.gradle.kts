@@ -7,6 +7,10 @@ pluginManagement {
     }
 }
 
+plugins {
+    id("org.gradle.toolchains.foojay-resolver-convention") version "0.8.0"
+}
+
 rootProject.name = "papyrus"
 for (name in listOf("papyrus-api", "papyrus-server")) {
     val projName = name.toLowerCase(Locale.ENGLISH)

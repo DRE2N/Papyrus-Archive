@@ -144,7 +144,7 @@ index 0000000000000000000000000000000000000000..a62ac149e0133f232128e6965d28f8c7
 +    }
 +}
 diff --git a/src/main/java/net/minecraft/network/Connection.java b/src/main/java/net/minecraft/network/Connection.java
-index 2ae08b21c63490bbf8cd870f9585d82ed131f815..c9808178e8b5a075ffdf14c8d45253a255f8d163 100644
+index 90a2c61c42cba7e38f167eccdd7a951a947963c4..6abe17797036c86115d17f87c4f2da17e9151f8e 100644
 --- a/src/main/java/net/minecraft/network/Connection.java
 +++ b/src/main/java/net/minecraft/network/Connection.java
 @@ -4,6 +4,8 @@ import com.google.common.base.Suppliers;
@@ -156,7 +156,7 @@ index 2ae08b21c63490bbf8cd870f9585d82ed131f815..c9808178e8b5a075ffdf14c8d45253a2
  import io.netty.bootstrap.Bootstrap;
  import io.netty.channel.Channel;
  import io.netty.channel.ChannelException;
-@@ -291,7 +293,14 @@ public class Connection extends SimpleChannelInboundHandler<Packet<?>> {
+@@ -303,7 +305,14 @@ public class Connection extends SimpleChannelInboundHandler<Packet<?>> {
                  // Paper end - packet limiter
                  if (packetlistener.shouldHandleMessage(packet)) {
                      try {
@@ -171,8 +171,8 @@ index 2ae08b21c63490bbf8cd870f9585d82ed131f815..c9808178e8b5a075ffdf14c8d45253a2
 +                        Connection.genericsFtw(event.getPacket(), packetlistener);
                      } catch (RunningOnDifferentThreadException cancelledpackethandleexception) {
                          ;
-                     } catch (RejectedExecutionException rejectedexecutionexception) {
-@@ -384,7 +393,14 @@ public class Connection extends SimpleChannelInboundHandler<Packet<?>> {
+                     } catch (io.papermc.paper.util.ServerStopRejectedExecutionException ignored) { // Paper - do not prematurely disconnect players on stop
+@@ -449,7 +458,14 @@ public class Connection extends SimpleChannelInboundHandler<Packet<?>> {
          if (!connected && !this.preparing) {
              return;
          }
@@ -188,24 +188,11 @@ index 2ae08b21c63490bbf8cd870f9585d82ed131f815..c9808178e8b5a075ffdf14c8d45253a2
          packet.onPacketDispatch(this.getPlayer());
          if (connected && (InnerUtil.canSendImmediate(this, packet)
              || (io.papermc.paper.util.MCUtil.isMainThread() && packet.isReady() && this.pendingActions.isEmpty()
-diff --git a/src/main/java/net/minecraft/network/protocol/game/ClientboundServerDataPacket.java b/src/main/java/net/minecraft/network/protocol/game/ClientboundServerDataPacket.java
-index e9c3d0ad0147353bbe22d7beabe72749c3fbbc95..faf6e44710cd5e823d7806f77fc384e8ad4d2113 100644
---- a/src/main/java/net/minecraft/network/protocol/game/ClientboundServerDataPacket.java
-+++ b/src/main/java/net/minecraft/network/protocol/game/ClientboundServerDataPacket.java
-@@ -27,7 +27,7 @@ public class ClientboundServerDataPacket implements Packet<ClientGamePacketListe
-     public void write(FriendlyByteBuf buf) {
-         buf.writeComponent(this.motd);
-         buf.writeOptional(this.iconBytes, FriendlyByteBuf::writeByteArray);
--        buf.writeBoolean(true); // Papyrus
-+        buf.writeBoolean(true);
-     }
- 
-     @Override
 diff --git a/src/main/java/net/minecraft/server/level/ServerPlayer.java b/src/main/java/net/minecraft/server/level/ServerPlayer.java
-index be05a52be037042c6158100e2ce880b8ed415d53..48ae5c5c48a1ad016acee57468973aaab687ab72 100644
+index 89ed20e9c629cf39a24c7a0ce5c4fee41fc64fd5..e3361d32c9e39afd040f30bbf3febbedad734b86 100644
 --- a/src/main/java/net/minecraft/server/level/ServerPlayer.java
 +++ b/src/main/java/net/minecraft/server/level/ServerPlayer.java
-@@ -6,75 +6,19 @@ import com.mojang.datafixers.util.Either;
+@@ -6,29 +6,11 @@ import com.mojang.datafixers.util.Either;
  import com.mojang.logging.LogUtils;
  import com.mojang.serialization.DataResult;
  import com.mojang.serialization.Dynamic;
@@ -220,7 +207,6 @@ index be05a52be037042c6158100e2ce880b8ed415d53..48ae5c5c48a1ad016acee57468973aaa
 -import java.util.Set;
 -import java.util.stream.Collectors;
 -import javax.annotation.Nullable;
--import net.minecraft.BlockUtil;
 -import net.minecraft.ChatFormatting;
 -import net.minecraft.CrashReport;
 -import net.minecraft.CrashReportCategory;
@@ -236,8 +222,10 @@ index be05a52be037042c6158100e2ce880b8ed415d53..48ae5c5c48a1ad016acee57468973aaa
 -import net.minecraft.core.NonNullList;
 -import net.minecraft.core.SectionPos;
 +import net.minecraft.core.*;
+ import net.minecraft.core.particles.BlockParticleOption;
+ import net.minecraft.core.particles.ParticleTypes;
  import net.minecraft.core.registries.BuiltInRegistries;
- import net.minecraft.nbt.CompoundTag;
+@@ -36,45 +18,9 @@ import net.minecraft.nbt.CompoundTag;
  import net.minecraft.nbt.NbtOps;
  import net.minecraft.nbt.Tag;
  import net.minecraft.network.PacketSendListener;
@@ -262,7 +250,6 @@ index be05a52be037042c6158100e2ce880b8ed415d53..48ae5c5c48a1ad016acee57468973aaa
 -import net.minecraft.network.protocol.game.ClientboundGameEventPacket;
 -import net.minecraft.network.protocol.game.ClientboundHorseScreenOpenPacket;
 -import net.minecraft.network.protocol.game.ClientboundHurtAnimationPacket;
--import net.minecraft.network.protocol.game.ClientboundLevelEventPacket;
 -import net.minecraft.network.protocol.game.ClientboundMerchantOffersPacket;
 -import net.minecraft.network.protocol.game.ClientboundOpenBookPacket;
 -import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket;
@@ -286,7 +273,7 @@ index be05a52be037042c6158100e2ce880b8ed415d53..48ae5c5c48a1ad016acee57468973aaa
  import net.minecraft.network.protocol.status.ServerStatus;
  import net.minecraft.resources.ResourceKey;
  import net.minecraft.resources.ResourceLocation;
-@@ -94,17 +38,14 @@ import net.minecraft.tags.FluidTags;
+@@ -94,20 +40,19 @@ import net.minecraft.tags.FluidTags;
  import net.minecraft.util.Mth;
  import net.minecraft.util.RandomSource;
  import net.minecraft.util.Unit;
@@ -298,18 +285,21 @@ index be05a52be037042c6158100e2ce880b8ed415d53..48ae5c5c48a1ad016acee57468973aaa
 -import net.minecraft.world.damagesource.DamageSources;
  import net.minecraft.world.effect.MobEffectInstance;
  import net.minecraft.world.effect.MobEffects;
--import net.minecraft.world.entity.Entity;
--import net.minecraft.world.entity.EntitySelector;
+ import net.minecraft.world.entity.Entity;
+ import net.minecraft.world.entity.EntitySelector;
+ import net.minecraft.world.entity.EntityType;
+ import net.minecraft.world.entity.EquipmentSlot;
 -import net.minecraft.world.entity.HumanoidArm;
 -import net.minecraft.world.entity.LivingEntity;
 -import net.minecraft.world.entity.Mob;
 -import net.minecraft.world.entity.NeutralMob;
--import net.minecraft.world.entity.RelativeMovement;
 +import net.minecraft.world.entity.*;
- import net.minecraft.world.entity.animal.Pig;
- import net.minecraft.world.entity.animal.horse.AbstractHorse;
- import net.minecraft.world.entity.item.ItemEntity;
-@@ -118,18 +59,8 @@ import net.minecraft.world.entity.projectile.AbstractArrow;
+ import net.minecraft.world.entity.Pose;
+-import net.minecraft.world.entity.RelativeMovement;
+ import net.minecraft.world.entity.ai.attributes.AttributeInstance;
+ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+ import net.minecraft.world.entity.ai.attributes.Attributes;
+@@ -123,20 +68,10 @@ import net.minecraft.world.entity.projectile.AbstractArrow;
  import net.minecraft.world.entity.vehicle.AbstractMinecart;
  import net.minecraft.world.entity.vehicle.Boat;
  import net.minecraft.world.food.FoodData;
@@ -317,21 +307,23 @@ index be05a52be037042c6158100e2ce880b8ed415d53..48ae5c5c48a1ad016acee57468973aaa
 -import net.minecraft.world.inventory.ContainerListener;
 -import net.minecraft.world.inventory.ContainerSynchronizer;
 -import net.minecraft.world.inventory.HorseInventoryMenu;
+ import net.minecraft.world.inventory.InventoryMenu;
 -import net.minecraft.world.inventory.ResultSlot;
 -import net.minecraft.world.inventory.Slot;
 -import net.minecraft.world.item.ComplexItem;
++import net.minecraft.world.inventory.*;
++import net.minecraft.world.item.*;
+ import net.minecraft.world.item.Item;
 -import net.minecraft.world.item.ItemCooldowns;
 -import net.minecraft.world.item.ItemStack;
 -import net.minecraft.world.item.Items;
 -import net.minecraft.world.item.ServerItemCooldowns;
 -import net.minecraft.world.item.WrittenBookItem;
-+import net.minecraft.world.inventory.*;
-+import net.minecraft.world.item.*;
  import net.minecraft.world.item.crafting.RecipeHolder;
- import net.minecraft.world.item.enchantment.EnchantmentHelper;
- import net.minecraft.world.item.trading.MerchantOffers;
-@@ -152,18 +83,8 @@ import net.minecraft.world.level.gameevent.GameEvent;
- import net.minecraft.world.level.portal.PortalInfo;
+ import net.minecraft.world.level.ChunkPos;
+ import net.minecraft.world.level.GameRules;
+@@ -158,21 +93,11 @@ import net.minecraft.world.level.portal.DimensionTransition;
+ import net.minecraft.world.level.storage.LevelData;
  import net.minecraft.world.phys.AABB;
  import net.minecraft.world.phys.Vec3;
 -import net.minecraft.world.scores.PlayerTeam;
@@ -342,6 +334,9 @@ index be05a52be037042c6158100e2ce880b8ed415d53..48ae5c5c48a1ad016acee57468973aaa
 -import net.minecraft.world.InteractionHand;
 -import net.minecraft.world.MenuProvider;
 -import net.minecraft.world.damagesource.CombatTracker;
+ import net.minecraft.world.item.enchantment.EnchantmentEffectComponents;
+ import net.minecraft.world.item.enchantment.EnchantmentHelper;
+ import net.minecraft.world.item.trading.MerchantOffers;
 -import net.minecraft.world.scores.Scoreboard;
 -import net.minecraft.world.scores.Team;
 +import net.minecraft.world.scores.*;
@@ -350,15 +345,16 @@ index be05a52be037042c6158100e2ce880b8ed415d53..48ae5c5c48a1ad016acee57468973aaa
  import org.bukkit.Bukkit;
  import org.bukkit.Location;
  import org.bukkit.WeatherType;
-@@ -176,16 +97,16 @@ import org.bukkit.craftbukkit.inventory.CraftItemStack;
- import org.bukkit.craftbukkit.util.CraftDimensionUtil;
+@@ -186,17 +111,17 @@ import org.bukkit.craftbukkit.util.CraftDimensionUtil;
  import org.bukkit.craftbukkit.util.CraftLocation;
+ import org.bukkit.entity.Player;
  import org.bukkit.event.entity.EntityExhaustionEvent;
 -import org.bukkit.event.player.PlayerBedLeaveEvent;
 -import org.bukkit.event.player.PlayerChangedMainHandEvent;
 -import org.bukkit.event.player.PlayerChangedWorldEvent;
 -import org.bukkit.event.player.PlayerLocaleChangeEvent;
 -import org.bukkit.event.player.PlayerPortalEvent;
+ import org.bukkit.event.player.PlayerRespawnEvent;
 -import org.bukkit.event.player.PlayerSpawnChangeEvent;
 -import org.bukkit.event.player.PlayerTeleportEvent;
 +import org.bukkit.event.player.*;
@@ -374,29 +370,29 @@ index be05a52be037042c6158100e2ce880b8ed415d53..48ae5c5c48a1ad016acee57468973aaa
 +import java.util.stream.Collectors;
  // CraftBukkit end
  
- public class ServerPlayer extends Player {
-@@ -329,6 +250,8 @@ public class ServerPlayer extends Player {
-     public double lastEntitySpawnRadiusSquared = -1.0;
-     // Paper end - optimise chunk tick iteration
+ public class ServerPlayer extends net.minecraft.world.entity.player.Player implements ca.spottedleaf.moonrise.patches.chunk_system.player.ChunkSystemServerPlayer { // Paper - rewrite chunk system
+@@ -332,6 +257,8 @@ public class ServerPlayer extends net.minecraft.world.entity.player.Player imple
+     }
+     // Paper end - rewrite chunk system
  
 +    public int selectedProfileID = 0; // Papyrus
 +
      public ServerPlayer(MinecraftServer server, ServerLevel world, GameProfile profile, ClientInformation clientOptions) {
          super(world, world.getSharedSpawnPos(), world.getSharedSpawnAngle(), profile);
          this.chatVisibility = ChatVisiblity.FULL;
-@@ -2758,3 +2681,4 @@ public class ServerPlayer extends Player {
+@@ -2936,3 +2863,4 @@ public class ServerPlayer extends net.minecraft.world.entity.player.Player imple
      }
      // CraftBukkit end
  }
 +
 diff --git a/src/main/java/net/minecraft/world/level/block/ChorusFlowerBlock.java b/src/main/java/net/minecraft/world/level/block/ChorusFlowerBlock.java
-index 0ab1bbd7c8dc8e45f754434357898d8fc990a021..8ef9ba6fe52fca3e17f7e84e615ac73326bfeb03 100644
+index 6709cb6b657a8612781c2fe4dd76ee38f329c5ba..d9488f8b54f769c81276686d74f072b53b9109d7 100644
 --- a/src/main/java/net/minecraft/world/level/block/ChorusFlowerBlock.java
 +++ b/src/main/java/net/minecraft/world/level/block/ChorusFlowerBlock.java
 @@ -49,15 +49,16 @@ public class ChorusFlowerBlock extends Block {
  
      @Override
-     public void tick(BlockState state, ServerLevel world, BlockPos pos, RandomSource random) {
+     protected void tick(BlockState state, ServerLevel world, BlockPos pos, RandomSource random) {
 -        if (!state.canSurvive(world, pos)) {
 +        /*if (!state.canSurvive(world, pos)) {
              world.destroyBlock(pos, true);
@@ -406,7 +402,7 @@ index 0ab1bbd7c8dc8e45f754434357898d8fc990a021..8ef9ba6fe52fca3e17f7e84e615ac733
      }
  
      @Override
-     public boolean isRandomlyTicking(BlockState state) {
+     protected boolean isRandomlyTicking(BlockState state) {
 -        return (Integer) state.getValue(ChorusFlowerBlock.AGE) < 5;
 +        //return (Integer) state.getValue(ChorusFlowerBlock.AGE) < 5;
 +        return false;
@@ -416,7 +412,7 @@ index 0ab1bbd7c8dc8e45f754434357898d8fc990a021..8ef9ba6fe52fca3e17f7e84e615ac733
 @@ -67,6 +68,7 @@ public class ChorusFlowerBlock extends Block {
  
      @Override
-     public void randomTick(BlockState state, ServerLevel world, BlockPos pos, RandomSource random) {
+     protected void randomTick(BlockState state, ServerLevel world, BlockPos pos, RandomSource random) {
 +        if (true) return; // Papyrus - Disable ticking
          BlockPos blockposition1 = pos.above();
  
@@ -424,7 +420,7 @@ index 0ab1bbd7c8dc8e45f754434357898d8fc990a021..8ef9ba6fe52fca3e17f7e84e615ac733
 @@ -181,6 +183,7 @@ public class ChorusFlowerBlock extends Block {
  
      @Override
-     public BlockState updateShape(BlockState state, Direction direction, BlockState neighborState, LevelAccessor world, BlockPos pos, BlockPos neighborPos) {
+     protected BlockState updateShape(BlockState state, Direction direction, BlockState neighborState, LevelAccessor world, BlockPos pos, BlockPos neighborPos) {
 +        if (true) return state; // Papyrus
          if (direction != Direction.UP && !state.canSurvive(world, pos)) {
              world.scheduleTick(pos, (Block) this, 1);
@@ -432,7 +428,7 @@ index 0ab1bbd7c8dc8e45f754434357898d8fc990a021..8ef9ba6fe52fca3e17f7e84e615ac733
 @@ -190,6 +193,7 @@ public class ChorusFlowerBlock extends Block {
  
      @Override
-     public boolean canSurvive(BlockState state, LevelReader world, BlockPos pos) {
+     protected boolean canSurvive(BlockState state, LevelReader world, BlockPos pos) {
 +        if (true) return true; // Papyrus
          BlockState iblockdata1 = world.getBlockState(pos.below());
  
@@ -440,36 +436,35 @@ index 0ab1bbd7c8dc8e45f754434357898d8fc990a021..8ef9ba6fe52fca3e17f7e84e615ac733
 @@ -280,6 +284,7 @@ public class ChorusFlowerBlock extends Block {
  
      @Override
-     public void onProjectileHit(Level world, BlockState state, BlockHitResult hit, Projectile projectile) {
+     protected void onProjectileHit(Level world, BlockState state, BlockHitResult hit, Projectile projectile) {
 +        if (true) return; // Papyrus
          BlockPos blockposition = hit.getBlockPos();
  
          if (!world.isClientSide && projectile.mayInteract(world, blockposition) && projectile.mayBreak(world)) {
 diff --git a/src/main/java/net/minecraft/world/level/block/ChorusPlantBlock.java b/src/main/java/net/minecraft/world/level/block/ChorusPlantBlock.java
-index d811ed3623446000d3aa0be59c573f7c759bf55a..06dfe0fe5d0b839fec70aa1864ba7b117acc4412 100644
+index 8569ad43985fa60d5196ae4bc21646406d8b2adc..18fe26a86c979359dfb6feaecfd22514378a64fe 100644
 --- a/src/main/java/net/minecraft/world/level/block/ChorusPlantBlock.java
 +++ b/src/main/java/net/minecraft/world/level/block/ChorusPlantBlock.java
-@@ -59,10 +59,6 @@ public class ChorusPlantBlock extends PipeBlock {
+@@ -73,9 +73,6 @@ public class ChorusPlantBlock extends PipeBlock {
      @Override
-     public void tick(BlockState state, ServerLevel world, BlockPos pos, RandomSource random) {
+     protected void tick(BlockState state, ServerLevel world, BlockPos pos, RandomSource random) {
          if (io.papermc.paper.configuration.GlobalConfiguration.get().blockUpdates.disableChorusPlantUpdates) return; // Paper - add option to disable block updates
 -        if (!state.canSurvive(world, pos)) {
 -            world.destroyBlock(pos, true);
 -        }
--
      }
  
      @Override
-@@ -96,6 +92,6 @@ public class ChorusPlantBlock extends PipeBlock {
+@@ -109,6 +106,6 @@ public class ChorusPlantBlock extends PipeBlock {
  
      @Override
-     public boolean isPathfindable(BlockState state, BlockGetter world, BlockPos pos, PathComputationType type) {
+     protected boolean isPathfindable(BlockState state, PathComputationType type) {
 -        return false;
 +        return true; // Papyrus - Leaves
      }
  }
 diff --git a/src/main/java/net/minecraft/world/level/block/CoralBlock.java b/src/main/java/net/minecraft/world/level/block/CoralBlock.java
-index 8fd8285e07de4a0457da507501e49a807542f3b1..d23bcb290a023c393a7acde6f50fcd828fba5e75 100644
+index 81fe0dea8e6e23c4a78f07fc2f9c0d68cd683f11..ce340f9d4cd2e0e32e02d0184ac25a1e5a7552ff 100644
 --- a/src/main/java/net/minecraft/world/level/block/CoralBlock.java
 +++ b/src/main/java/net/minecraft/world/level/block/CoralBlock.java
 @@ -44,7 +44,7 @@ public class CoralBlock extends Block {
@@ -492,7 +487,7 @@ index 8fd8285e07de4a0457da507501e49a807542f3b1..d23bcb290a023c393a7acde6f50fcd82
          int i = aenumdirection.length;
  
 diff --git a/src/main/java/net/minecraft/world/level/block/CoralFanBlock.java b/src/main/java/net/minecraft/world/level/block/CoralFanBlock.java
-index c13e8bf5d6dbe9af6c7f391eeac976575f75301f..aea890726e7de112e489341e15dd98fef960acf3 100644
+index 7701683000132479d8c8eaa77ac3f93e41a960be..9fc8e4cc81547a399174edaa39bbba23700e084c 100644
 --- a/src/main/java/net/minecraft/world/level/block/CoralFanBlock.java
 +++ b/src/main/java/net/minecraft/world/level/block/CoralFanBlock.java
 @@ -45,7 +45,7 @@ public class CoralFanBlock extends BaseCoralFanBlock {
@@ -505,7 +500,7 @@ index c13e8bf5d6dbe9af6c7f391eeac976575f75301f..aea890726e7de112e489341e15dd98fe
  
      }
 diff --git a/src/main/java/net/minecraft/world/level/block/CoralPlantBlock.java b/src/main/java/net/minecraft/world/level/block/CoralPlantBlock.java
-index b461508e9efcea07acc621507b4c27ce45307714..f59c7f2509208a4c0fcae75f064f58ddfb4967de 100644
+index 4c4aa2a63be84ff614a3dc0db2864266755545a2..0118d2749fafafb39d24d15ee964ec238e704803 100644
 --- a/src/main/java/net/minecraft/world/level/block/CoralPlantBlock.java
 +++ b/src/main/java/net/minecraft/world/level/block/CoralPlantBlock.java
 @@ -50,7 +50,7 @@ public class CoralPlantBlock extends BaseCoralPlantTypeBlock {
@@ -518,7 +513,7 @@ index b461508e9efcea07acc621507b4c27ce45307714..f59c7f2509208a4c0fcae75f064f58dd
  
      }
 diff --git a/src/main/java/net/minecraft/world/level/block/CoralWallFanBlock.java b/src/main/java/net/minecraft/world/level/block/CoralWallFanBlock.java
-index 977e8c477ec89374bb53269268c9ad575ef995a7..6d51f09047f6e388b651233a29879e8648946d8d 100644
+index 924766117fcdf7285327e9aa1f89a630987855a8..ab4c8eb931e560371ac4a56424819b743d4d889f 100644
 --- a/src/main/java/net/minecraft/world/level/block/CoralWallFanBlock.java
 +++ b/src/main/java/net/minecraft/world/level/block/CoralWallFanBlock.java
 @@ -45,7 +45,7 @@ public class CoralWallFanBlock extends BaseCoralWallFanBlock {
@@ -530,105 +525,3 @@ index 977e8c477ec89374bb53269268c9ad575ef995a7..6d51f09047f6e388b651233a29879e86
          }
  
      }
-diff --git a/src/main/java/net/minecraft/world/level/block/HugeMushroomBlock.java b/src/main/java/net/minecraft/world/level/block/HugeMushroomBlock.java
-index e049e702f58053431bf3e438ea37850c86ae3b7b..d7f8c885055d229dc63066ec08c14256b8ecf616 100644
---- a/src/main/java/net/minecraft/world/level/block/HugeMushroomBlock.java
-+++ b/src/main/java/net/minecraft/world/level/block/HugeMushroomBlock.java
-@@ -29,7 +29,7 @@ public class HugeMushroomBlock extends Block {
- 
-     public HugeMushroomBlock(BlockBehaviour.Properties settings) {
-         super(settings);
--        this.registerDefaultState(this.stateDefinition.any().setValue(NORTH, Boolean.valueOf(true)).setValue(EAST, Boolean.valueOf(true)).setValue(SOUTH, Boolean.valueOf(true)).setValue(WEST, Boolean.valueOf(true)).setValue(UP, Boolean.valueOf(true)).setValue(DOWN, Boolean.valueOf(true)));
-+        this.registerDefaultState(this.stateDefinition.any().setValue(NORTH, true).setValue(EAST, true).setValue(SOUTH, true).setValue(WEST, true).setValue(UP, true).setValue(DOWN, true));
-     }
- 
-     @Override
-diff --git a/src/main/java/net/minecraft/world/level/storage/PlayerDataStorage.java b/src/main/java/net/minecraft/world/level/storage/PlayerDataStorage.java
-index b3a90d6ef0e17c236e0b3c46e2d0012671afdaa7..770f4a921900bad716e29d9686f68b294c0e4991 100644
---- a/src/main/java/net/minecraft/world/level/storage/PlayerDataStorage.java
-+++ b/src/main/java/net/minecraft/world/level/storage/PlayerDataStorage.java
-@@ -2,24 +2,20 @@ package net.minecraft.world.level.storage;
- 
- import com.mojang.datafixers.DataFixer;
- import com.mojang.logging.LogUtils;
--import java.io.File;
--import java.nio.file.Files;
--import java.nio.file.Path;
--import javax.annotation.Nullable;
- import net.minecraft.Util;
- import net.minecraft.nbt.CompoundTag;
- import net.minecraft.nbt.NbtAccounter;
- import net.minecraft.nbt.NbtIo;
- import net.minecraft.nbt.NbtUtils;
- import net.minecraft.server.level.ServerPlayer;
--import net.minecraft.util.datafix.DataFixTypes;
- import net.minecraft.world.entity.player.Player;
-+import org.bukkit.craftbukkit.entity.CraftPlayer;
- import org.slf4j.Logger;
- 
--// CraftBukkit start
--import java.io.FileInputStream;
--import java.io.InputStream;
--import org.bukkit.craftbukkit.entity.CraftPlayer;
-+import javax.annotation.Nullable;
-+import java.io.File;
-+import java.nio.file.Files;
-+import java.nio.file.Path;
- // CraftBukkit end
- 
- public class PlayerDataStorage {
-@@ -35,15 +31,23 @@ public class PlayerDataStorage {
-     }
- 
-     public void save(Player player) {
-+        save(player, 0);
-+    }
-+
-+    public void save(Player player, int profileID) {
-         if (org.spigotmc.SpigotConfig.disablePlayerDataSaving) return; // Spigot
-         try {
-             CompoundTag nbttagcompound = player.saveWithoutId(new CompoundTag());
-             Path path = this.playerDir.toPath();
--            Path path1 = Files.createTempFile(path, player.getStringUUID() + "-", ".dat");
--
-+            Path path1 = Files.createTempFile(path, player.getStringUUID() + "-" + profileID, ".dat");
-+            File playerDirectory = new File(playerDir, player.getStringUUID());
-+            if (!playerDirectory.exists()) {
-+                playerDirectory.mkdirs();
-+            }
-+            NbtIo.writeCompressed(nbttagcompound, path1);
-+            Path path2 = playerDirectory.toPath().resolve(profileID + ".dat");
-+            Path path3 = playerDirectory.toPath().resolve(profileID + ".dat_old");
-             NbtIo.writeCompressed(nbttagcompound, path1);
--            Path path2 = path.resolve(player.getStringUUID() + ".dat");
--            Path path3 = path.resolve(player.getStringUUID() + ".dat_old");
- 
-             Util.safeReplaceFile(path2, path1, path3);
-         } catch (Exception exception) {
-@@ -54,10 +58,16 @@ public class PlayerDataStorage {
- 
-     @Nullable
-     public CompoundTag load(Player player) {
-+        return load(player, 0);
-+    }
-+
-+    @Nullable
-+    public CompoundTag load(Player player, int profileID) {
-         CompoundTag nbttagcompound = null;
-+        File playerDirectory = new File(playerDir, player.getStringUUID());
- 
-         try {
--            File file = new File(this.playerDir, player.getStringUUID() + ".dat");
-+            File file = new File(playerDirectory, profileID + ".dat");
-             // Spigot Start
-             boolean usingWrongFile = false;
-             if ( org.bukkit.Bukkit.getOnlineMode() && !file.exists() ) // Paper - Check online mode first
-@@ -89,7 +99,7 @@ public class PlayerDataStorage {
-             if (player instanceof ServerPlayer) {
-                 CraftPlayer player1 = (CraftPlayer) player.getBukkitEntity();
-                 // Only update first played if it is older than the one we have
--                long modified = new File(this.playerDir, player.getUUID().toString() + ".dat").lastModified();
-+                long modified = new File(playerDirectory, profileID + ".dat").lastModified();
-                 if (modified < player1.getFirstPlayed()) {
-                     player1.setFirstPlayed(modified);
-                 }

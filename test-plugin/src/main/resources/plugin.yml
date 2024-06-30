@@ -1,9 +1,0 @@
-name: TestPlugin
-version: 1.0
-main: de.erethon.PapyrusTestPlugin
-api-version: '1.20'
-commands:
-  test:
-    description: test
-    usage: test test
-    permission: test.test
