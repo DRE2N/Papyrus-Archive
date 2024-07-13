@@ -548,7 +548,7 @@ index 5f20606cc2c79ad9a4c4d4d6c9e6a2a31a88b282..10d9a569e9b46a2a2f13d511a29b2a1f
 +    }
  }
 diff --git a/src/main/java/net/minecraft/world/ContainerHelper.java b/src/main/java/net/minecraft/world/ContainerHelper.java
-index 2eb2eae92a62d302965d30e07bbe38d4309430a4..4208bf07af7bf97274fd77b9a4fa2b831fe6a895 100644
+index 2eb2eae92a62d302965d30e07bbe38d4309430a4..de4ff5763029929bec272b6f99e57a91991d8d43 100644
 --- a/src/main/java/net/minecraft/world/ContainerHelper.java
 +++ b/src/main/java/net/minecraft/world/ContainerHelper.java
 @@ -7,6 +7,8 @@ import net.minecraft.core.NonNullList;
@@ -560,10 +560,11 @@ index 2eb2eae92a62d302965d30e07bbe38d4309430a4..4208bf07af7bf97274fd77b9a4fa2b83
  
  public class ContainerHelper {
      public static final String TAG_ITEMS = "Items";
-@@ -34,6 +36,13 @@ public class ContainerHelper {
-                 listTag.add(itemStack.save(registries, compoundTag));
+@@ -52,6 +54,14 @@ public class ContainerHelper {
+                 stacks.set(j, ItemStack.parse(registries, compoundTag).orElse(ItemStack.EMPTY));
              }
          }
++        // Papyrus - Inventory API
 +        ContainerLoadEvent loadEvent = new ContainerLoadEvent(stacks, false);
 +        try {
 +            Bukkit.getPluginManager().callEvent(loadEvent);
@@ -571,9 +572,9 @@ index 2eb2eae92a62d302965d30e07bbe38d4309430a4..4208bf07af7bf97274fd77b9a4fa2b83
 +            loadEvent = new ContainerLoadEvent(stacks, true);
 +            Bukkit.getPluginManager().callEvent(loadEvent);
 +        }
+     }
  
-         if (!listTag.isEmpty() || setIfEmpty) {
-             nbt.put("Items", listTag);
+     public static int clearOrCountMatchingItems(Container inventory, Predicate<ItemStack> shouldRemove, int maxCount, boolean dryRun) {
 diff --git a/src/main/java/net/minecraft/world/damagesource/CombatTracker.java b/src/main/java/net/minecraft/world/damagesource/CombatTracker.java
 index 99a7e9eb75231c15bd8bb24fbb4e296bc9fdedff..21a9e11b673faf200a2022b00180d9f7cae0a02e 100644
 --- a/src/main/java/net/minecraft/world/damagesource/CombatTracker.java
@@ -1240,7 +1241,7 @@ index b8ff1e3d280171378fe383bcc7c6a855d20ae5d1..ec1eaafe7423dd8363f20328ec26ed1f
          this.goalSelector.addGoal(3, new LookAtPlayerGoal(this, Player.class, 8.0F));
          this.goalSelector.addGoal(3, new RandomLookAroundGoal(this));
 diff --git a/src/main/java/net/minecraft/world/entity/player/Inventory.java b/src/main/java/net/minecraft/world/entity/player/Inventory.java
-index 6e66141dca61f777b354854b5d0bac2570b8bf3b..35c9c70cbd393deeed92bf825c714233d2383c6b 100644
+index 6e66141dca61f777b354854b5d0bac2570b8bf3b..577740928c739ff7b0a256a62749aa75244032e0 100644
 --- a/src/main/java/net/minecraft/world/entity/player/Inventory.java
 +++ b/src/main/java/net/minecraft/world/entity/player/Inventory.java
 @@ -4,6 +4,8 @@ import com.google.common.collect.ImmutableList;
@@ -1261,13 +1262,21 @@ index 6e66141dca61f777b354854b5d0bac2570b8bf3b..35c9c70cbd393deeed92bf825c714233
  import org.bukkit.Location;
  import org.bukkit.craftbukkit.entity.CraftHumanEntity;
  import org.bukkit.entity.HumanEntity;
-@@ -625,7 +629,8 @@ public class Inventory implements Container, Nameable {
+@@ -539,6 +543,9 @@ public class Inventory implements Container, Nameable {
+                 this.offhand.set(j - 150, itemstack);
+             }
+         }
++        // Papyrus - Inventory API
++        PlayerInventoryLoadEvent loadEvent = new PlayerInventoryLoadEvent(player, items, armor, offhand);
++        Bukkit.getPluginManager().callEvent(loadEvent);
+ 
+     }
+ 
+@@ -625,7 +632,6 @@ public class Inventory implements Container, Nameable {
                  }
              }
          }
 -
-+        PlayerInventoryLoadEvent loadEvent = new PlayerInventoryLoadEvent(player, items, armor, offhand);
-+        Bukkit.getPluginManager().callEvent(loadEvent);
      }
  
      @Override
