@@ -63,7 +63,7 @@ index 0000000000000000000000000000000000000000..afe4ed93f622cc46c0bb1faa12976e44
 +    }
 +}
 diff --git a/src/main/java/net/minecraft/server/level/ServerPlayer.java b/src/main/java/net/minecraft/server/level/ServerPlayer.java
-index 3b6945e58b157c89d99fff020003a5b4e67b9e0b..2199ca8112057ecfe32c6301988093b83c13b13b 100644
+index 66cae5b07dd38af6bdd9e465118fb23113b13364..b84a7d7d158d919b35c4bbd727e95f97e0b92998 100644
 --- a/src/main/java/net/minecraft/server/level/ServerPlayer.java
 +++ b/src/main/java/net/minecraft/server/level/ServerPlayer.java
 @@ -6,6 +6,7 @@ import com.mojang.datafixers.util.Either;
@@ -74,7 +74,7 @@ index 3b6945e58b157c89d99fff020003a5b4e67b9e0b..2199ca8112057ecfe32c6301988093b8
  import io.papermc.paper.adventure.PaperAdventure;
  import net.minecraft.*;
  import net.minecraft.advancements.CriteriaTriggers;
-@@ -2342,7 +2343,7 @@ public class ServerPlayer extends net.minecraft.world.entity.player.Player imple
+@@ -2343,7 +2344,7 @@ public class ServerPlayer extends net.minecraft.world.entity.player.Player imple
          if (this.gameMode.getGameModeForPlayer() == GameType.SPECTATOR) {
              this.setCamera(target);
          } else {
@@ -96,7 +96,7 @@ index 7796e191747be545e744564a2b0b65790f69114d..47fa5fb1884ee33f03f875951442a27d
  
      // CraftBukkit start - add fields and methods
 diff --git a/src/main/java/net/minecraft/world/entity/Entity.java b/src/main/java/net/minecraft/world/entity/Entity.java
-index 83f3ffdd8fa901b3de580d2359cdb5ead0d762cb..5212cfad27b6f7dd715dbf69008e6366e031b3da 100644
+index be9976a994dd04cf53048567576dd3484facf625..4e1af50ebd065a494cb5aa5a35f008fe7be4ce3e 100644
 --- a/src/main/java/net/minecraft/world/entity/Entity.java
 +++ b/src/main/java/net/minecraft/world/entity/Entity.java
 @@ -10,6 +10,7 @@ import it.unimi.dsi.fastutil.doubles.DoubleList;
@@ -107,7 +107,7 @@ index 83f3ffdd8fa901b3de580d2359cdb5ead0d762cb..5212cfad27b6f7dd715dbf69008e6366
  import it.unimi.dsi.fastutil.objects.Object2DoubleArrayMap;
  import it.unimi.dsi.fastutil.objects.Object2DoubleMap;
  import java.util.ArrayList;
-@@ -2143,6 +2144,16 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
+@@ -2246,6 +2247,16 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
          }
      }
  

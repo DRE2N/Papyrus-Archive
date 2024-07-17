@@ -144,7 +144,7 @@ index 0000000000000000000000000000000000000000..a62ac149e0133f232128e6965d28f8c7
 +    }
 +}
 diff --git a/src/main/java/net/minecraft/network/Connection.java b/src/main/java/net/minecraft/network/Connection.java
-index 90a2c61c42cba7e38f167eccdd7a951a947963c4..6abe17797036c86115d17f87c4f2da17e9151f8e 100644
+index 3e550f8e7cd4f4e16f499a8a2a4b95420270f07a..a5f9f2542af86ce95fb31887260fd88fc5f84fb2 100644
 --- a/src/main/java/net/minecraft/network/Connection.java
 +++ b/src/main/java/net/minecraft/network/Connection.java
 @@ -4,6 +4,8 @@ import com.google.common.base.Suppliers;
@@ -189,7 +189,7 @@ index 90a2c61c42cba7e38f167eccdd7a951a947963c4..6abe17797036c86115d17f87c4f2da17
          if (connected && (InnerUtil.canSendImmediate(this, packet)
              || (io.papermc.paper.util.MCUtil.isMainThread() && packet.isReady() && this.pendingActions.isEmpty()
 diff --git a/src/main/java/net/minecraft/server/level/ServerPlayer.java b/src/main/java/net/minecraft/server/level/ServerPlayer.java
-index 9d1e68c09fa7093cf0f6fa636f90cb15a44cbb38..3b6945e58b157c89d99fff020003a5b4e67b9e0b 100644
+index 71882332ee61023d656a6de3955ca34fcef1f536..66cae5b07dd38af6bdd9e465118fb23113b13364 100644
 --- a/src/main/java/net/minecraft/server/level/ServerPlayer.java
 +++ b/src/main/java/net/minecraft/server/level/ServerPlayer.java
 @@ -6,29 +6,11 @@ import com.mojang.datafixers.util.Either;
@@ -371,7 +371,7 @@ index 9d1e68c09fa7093cf0f6fa636f90cb15a44cbb38..3b6945e58b157c89d99fff020003a5b4
  // CraftBukkit end
  
  public class ServerPlayer extends net.minecraft.world.entity.player.Player implements ca.spottedleaf.moonrise.patches.chunk_system.player.ChunkSystemServerPlayer { // Paper - rewrite chunk system
-@@ -332,6 +257,8 @@ public class ServerPlayer extends net.minecraft.world.entity.player.Player imple
+@@ -333,6 +258,8 @@ public class ServerPlayer extends net.minecraft.world.entity.player.Player imple
      }
      // Paper end - rewrite chunk system
  
@@ -380,7 +380,7 @@ index 9d1e68c09fa7093cf0f6fa636f90cb15a44cbb38..3b6945e58b157c89d99fff020003a5b4
      public ServerPlayer(MinecraftServer server, ServerLevel world, GameProfile profile, ClientInformation clientOptions) {
          super(world, world.getSharedSpawnPos(), world.getSharedSpawnAngle(), profile);
          this.chatVisibility = ChatVisiblity.FULL;
-@@ -2945,3 +2872,4 @@ public class ServerPlayer extends net.minecraft.world.entity.player.Player imple
+@@ -2946,3 +2873,4 @@ public class ServerPlayer extends net.minecraft.world.entity.player.Player imple
      }
      // CraftBukkit end
  }

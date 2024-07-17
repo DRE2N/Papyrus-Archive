@@ -48,10 +48,10 @@ index 1a734293c9416f13324bb0edf8f950c9029f8bc4..a26ff240bb68379f00f3e1ec5e058c3b
              "Git-Commit" to gitHash, // Paper
              "CraftBukkit-Package-Version" to paperweight.craftBukkitPackageVersion.get(), // Paper
 diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
-index 330bee331335454a61cf8350a6654217c8124445..009f641503b5bfdbcce5676be5b27d3097500bcd 100644
+index aeae4f8d4ead24db315631c3d2c0b930d0d51e02..90cdfbe2b346bda715b37a3bf59dac7e494b0bd7 100644
 --- a/src/main/java/net/minecraft/server/MinecraftServer.java
 +++ b/src/main/java/net/minecraft/server/MinecraftServer.java
-@@ -1932,7 +1932,8 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+@@ -1937,7 +1937,8 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
  
      @DontObfuscate
      public String getServerModName() {
