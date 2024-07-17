@@ -1746,10 +1746,10 @@ index 1d82cfe7af0dc42f88901fb0c44896771fdf8a93..55d41fff605fac1a6eb34e2e96ab0ae5
          // Paper start - move NotePlayEvent call to fix instrument/note changes
          org.bukkit.event.block.NotePlayEvent event = org.bukkit.craftbukkit.event.CraftEventFactory.callNotePlayEvent(world, pos, blockpropertyinstrument, state.getValue(NOTE));
 diff --git a/src/main/java/net/minecraft/world/level/storage/PlayerDataStorage.java b/src/main/java/net/minecraft/world/level/storage/PlayerDataStorage.java
-index 8ab7ca373a885fbe658013c9c6a2e38d32d77bb2..1e1d09b07da1cb4303008ebafc1ddecc406c0f60 100644
+index 8ab7ca373a885fbe658013c9c6a2e38d32d77bb2..6be68b3f8c08a8a1e27aae5d6e8af9704638aa69 100644
 --- a/src/main/java/net/minecraft/world/level/storage/PlayerDataStorage.java
 +++ b/src/main/java/net/minecraft/world/level/storage/PlayerDataStorage.java
-@@ -35,15 +35,19 @@ public class PlayerDataStorage {
+@@ -35,19 +35,29 @@ public class PlayerDataStorage {
      }
  
      public void save(Player player) {
@@ -1762,18 +1762,32 @@ index 8ab7ca373a885fbe658013c9c6a2e38d32d77bb2..1e1d09b07da1cb4303008ebafc1ddecc
              CompoundTag nbttagcompound = player.saveWithoutId(new CompoundTag());
 -            Path path = this.playerDir.toPath();
 -            Path path1 = Files.createTempFile(path, player.getStringUUID() + "-", ".dat");
-+            Path path = this.playerDir.toPath().resolve(player.getStringUUID());
-+            Path path1 = Files.createTempFile(path, profileID + "-", ".dat");
++            Path playerDirPath = this.playerDir.toPath(); // Convert to Path once
++            Path playerUUIDPath = playerDirPath.resolve(player.getStringUUID());
++
++            if (!Files.exists(playerUUIDPath)) {
++                Files.createDirectories(playerUUIDPath);
++            }
  
-             NbtIo.writeCompressed(nbttagcompound, path1);
+-            NbtIo.writeCompressed(nbttagcompound, path1);
 -            Path path2 = path.resolve(player.getStringUUID() + ".dat");
 -            Path path3 = path.resolve(player.getStringUUID() + ".dat_old");
-+            Path path2 = path.resolve(profileID + ".dat");
-+            Path path3 = path.resolve(profileID + ".dat_old");
++            Path tempFilePath = Files.createTempFile(playerUUIDPath, profileID + "-", ".dat");
++            NbtIo.writeCompressed(nbttagcompound, tempFilePath);
  
-             Util.safeReplaceFile(path2, path1, path3);
-         } catch (Exception exception) {
-@@ -71,14 +75,14 @@ public class PlayerDataStorage {
+-            Util.safeReplaceFile(path2, path1, path3);
+-        } catch (Exception exception) {
+-            PlayerDataStorage.LOGGER.warn("Failed to save player data for {}", player.getScoreboardName(), exception); // Paper - Print exception
++            Path dataFilePath = playerUUIDPath.resolve(profileID + ".dat");
++            Path oldDataFilePath = playerUUIDPath.resolve(profileID + ".dat_old");
++
++            Util.safeReplaceFile(dataFilePath, tempFilePath, oldDataFilePath);
++        } catch (Exception e) {
++            PlayerDataStorage.LOGGER.warn("Failed to save player data for {}", player.getScoreboardName(), e); // Paper - Print exception
+         }
+ 
+     }
+@@ -71,14 +81,14 @@ public class PlayerDataStorage {
      }
  
      // CraftBukkit start
@@ -1791,7 +1805,7 @@ index 8ab7ca373a885fbe658013c9c6a2e38d32d77bb2..1e1d09b07da1cb4303008ebafc1ddecc
          {
              file1 = new File( file, java.util.UUID.nameUUIDFromBytes( ( "OfflinePlayer:" + name ).getBytes( java.nio.charset.StandardCharsets.UTF_8 ) ).toString() + s );
              if ( file1.exists() )
-@@ -86,7 +90,7 @@ public class PlayerDataStorage {
+@@ -86,7 +96,7 @@ public class PlayerDataStorage {
                  usingWrongFile = true;
                  org.bukkit.Bukkit.getServer().getLogger().warning( "Using offline mode UUID file for player " + name + " as it is the only copy we can find." );
              }
@@ -1800,7 +1814,7 @@ index 8ab7ca373a885fbe658013c9c6a2e38d32d77bb2..1e1d09b07da1cb4303008ebafc1ddecc
          // Spigot End
  
          if (file1.exists() && file1.isFile()) {
-@@ -108,12 +112,16 @@ public class PlayerDataStorage {
+@@ -108,12 +118,16 @@ public class PlayerDataStorage {
      }
  
      public Optional<CompoundTag> load(Player player) {
@@ -1819,7 +1833,7 @@ index 8ab7ca373a885fbe658013c9c6a2e38d32d77bb2..1e1d09b07da1cb4303008ebafc1ddecc
                  if (modified < player1.getFirstPlayed()) {
                      player1.setFirstPlayed(modified);
                  }
-@@ -124,16 +132,16 @@ public class PlayerDataStorage {
+@@ -124,16 +138,16 @@ public class PlayerDataStorage {
          });
      }
  
