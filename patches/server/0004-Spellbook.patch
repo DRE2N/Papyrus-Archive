@@ -1028,7 +1028,7 @@ index 7b93c6a04cca2ac31d137f06ef83bb08559b10bf..ef75af302a684b2f03e5bd79a0714812
          if (flag) {
              float f1 = this.getKnockback(target, damagesource);
 diff --git a/src/main/java/net/minecraft/world/entity/ai/attributes/Attributes.java b/src/main/java/net/minecraft/world/entity/ai/attributes/Attributes.java
-index 4930eef744cdb9f1855502a3186235cf483358b9..8490fc7977901ac41e6634c4d48185634ae9812a 100644
+index 4930eef744cdb9f1855502a3186235cf483358b9..b558075cfcf66fa0cdfafb0a0d1cae0d937ba507 100644
 --- a/src/main/java/net/minecraft/world/entity/ai/attributes/Attributes.java
 +++ b/src/main/java/net/minecraft/world/entity/ai/attributes/Attributes.java
 @@ -41,28 +41,34 @@ public class Attributes {
@@ -1044,7 +1044,7 @@ index 4930eef744cdb9f1855502a3186235cf483358b9..8490fc7977901ac41e6634c4d4818563
 -    public static final Holder<Attribute> RES_WATER = Attributes.register("resistance.water", new RangedAttribute("attribute.name.resistance.water", 0, 0, 4096)).setSyncable(false);
 +    public static final Holder<Attribute> RES_PURE = Attributes.register("resistance.pure", new RangedAttribute("attribute.name.resistance.pure", 0, 0, 4096).setSyncable(false));
 +    public static final Holder<Attribute> RES_PHYSICAL = Attributes.register("resistance.physical", new RangedAttribute("attribute.name.resistance.physical", 0, 0, 4096).setSyncable(false));
-+    public static final Holder<Attribute> RES_MAGIC = Attributes.register("resistance.magic", new RangedAttribute("attribute.name.resistance.magic", 0, 0, 4096).setSyncable(false));
++    public static final Holder<Attribute> RES_MAGIC = Attributes.register("resistance.magical", new RangedAttribute("attribute.name.resistance.magical", 0, 0, 4096).setSyncable(false));
 +    public static final Holder<Attribute> RES_AIR = Attributes.register("resistance.air", new RangedAttribute("attribute.name.resistance.air", 0, 0, 4096).setSyncable(false));
 +    public static final Holder<Attribute> RES_EARTH = Attributes.register("resistance.earth", new RangedAttribute("attribute.name.resistance.earth", 0, 0, 4096).setSyncable(false));
 +    public static final Holder<Attribute> RES_FIRE = Attributes.register("resistance.fire", new RangedAttribute("attribute.name.resistance.fire", 0, 0, 4096).setSyncable(false));
@@ -1059,7 +1059,7 @@ index 4930eef744cdb9f1855502a3186235cf483358b9..8490fc7977901ac41e6634c4d4818563
 -    public static final Holder<Attribute> ADV_WATER = Attributes.register("advantage.water", new RangedAttribute("attribute.name.advantage.water", 0, 0, 4096)).setSyncable(false);
 +    public static final Holder<Attribute> ADV_PURE = Attributes.register("advantage.pure", new RangedAttribute("attribute.name.advantage.pure", 0, 0, 4096).setSyncable(false));
 +    public static final Holder<Attribute> ADV_PHYSICAL = Attributes.register("advantage.physical", new RangedAttribute("attribute.name.advantage.physical", 0, 0, 4096).setSyncable(false));
-+    public static final Holder<Attribute> ADV_MAGIC = Attributes.register("advantage.magic", new RangedAttribute("attribute.name.advantage.magic", 0, 0, 4096).setSyncable(false));
++    public static final Holder<Attribute> ADV_MAGIC = Attributes.register("advantage.magical", new RangedAttribute("attribute.name.advantage.magical", 0, 0, 4096).setSyncable(false));
 +    public static final Holder<Attribute> ADV_AIR = Attributes.register("advantage.air", new RangedAttribute("attribute.name.advantage.air", 0, 0, 4096).setSyncable(false));
 +    public static final Holder<Attribute> ADV_EARTH = Attributes.register("advantage.earth", new RangedAttribute("attribute.name.advantage.earth", 0, 0, 4096).setSyncable(false));
 +    public static final Holder<Attribute> ADV_FIRE = Attributes.register("advantage.fire", new RangedAttribute("attribute.name.advantage.fire", 0, 0, 4096).setSyncable(false));

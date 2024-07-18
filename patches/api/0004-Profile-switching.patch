@@ -393,6 +393,30 @@ index c4a07139e108bbd54e33d499bb883b6ec6eb8baa..a4ed5621278d74f04a543c8f0405b333
          currentTicks++;
          if (currentTickInterval >= tickInterval) {
              currentTickInterval = 0;
+diff --git a/src/main/java/org/bukkit/attribute/Attribute.java b/src/main/java/org/bukkit/attribute/Attribute.java
+index 8bc1b04386ab2642b74d57d1ee44485c0bea9f92..ace00c147a89bb60ea99962f0fa4a6f60a5b9086 100644
+--- a/src/main/java/org/bukkit/attribute/Attribute.java
++++ b/src/main/java/org/bukkit/attribute/Attribute.java
+@@ -140,7 +140,7 @@ public enum Attribute implements Keyed, Translatable, net.kyori.adventure.transl
+     // Papyrus start
+     RES_PURE("resistance.pure"),
+     RES_PHYSICAL("resistance.physical"),
+-    RES_MAGIC("resistance.magic"),
++    RES_MAGIC("resistance.magical"),
+     RES_AIR("resistance.air"),
+     RES_EARTH("resistance.earth"),
+     RES_FIRE("resistance.fire"),
+@@ -148,8 +148,8 @@ public enum Attribute implements Keyed, Translatable, net.kyori.adventure.transl
+ 
+     ADV_PURE("advantage.pure"),
+     ADV_PHYSICAL("advantage.physical"),
+-    ADV_MAGIC("advantage.magic"),
+-    PEN_MAGIC("penetration.magic"),
++    ADV_MAGIC("advantage.magical"),
++    PEN_MAGIC("penetration.magical"),
+     PEN_PHYSICAL("penetration.physical"),
+     ADV_AIR("advantage.air"),
+     ADV_EARTH("advantage.earth"),
 diff --git a/src/main/java/org/bukkit/entity/Damageable.java b/src/main/java/org/bukkit/entity/Damageable.java
 index a81d5720f19f15dcffdf346f5f8d4e23cfb7a9ee..894c65c76c639205fb8e9e38258cde67b94c64dd 100644
 --- a/src/main/java/org/bukkit/entity/Damageable.java
@@ -516,7 +540,7 @@ index 8ea4be529400b34df3d31b0f17c2d145345523d9..e9a87df62a86ee6ba3f2cabf702df251
  
      /**
 diff --git a/src/main/java/org/bukkit/event/entity/EntityDamageEvent.java b/src/main/java/org/bukkit/event/entity/EntityDamageEvent.java
-index ca634147935c3bda8abad5dc73327e51381793a8..65d7f3340103cb5dd35fe78d58dd9a6eba7bcb46 100644
+index ef5b2a0f18c1c126db0b0c4a4d2a57483680665a..6f7875aa72c3f9c872fe38d364ae5ac8ac36ee9f 100644
 --- a/src/main/java/org/bukkit/event/entity/EntityDamageEvent.java
 +++ b/src/main/java/org/bukkit/event/entity/EntityDamageEvent.java
 @@ -7,6 +7,8 @@ import com.google.common.collect.ImmutableMap;
