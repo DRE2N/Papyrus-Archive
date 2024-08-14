@@ -4,145 +4,6 @@ Date: Sat, 11 Jun 2022 16:28:47 +0200
 Subject: [PATCH] misc qol
 
 
-diff --git a/src/main/java/de/erethon/PacketReceiveEvent.java b/src/main/java/de/erethon/PacketReceiveEvent.java
-new file mode 100644
-index 0000000000000000000000000000000000000000..36ec418efb38f8d910e687c633813aebc2595dc7
---- /dev/null
-+++ b/src/main/java/de/erethon/PacketReceiveEvent.java
-@@ -0,0 +1,64 @@
-+package de.erethon;
-+
-+import io.papermc.paper.util.MCUtil;
-+import net.minecraft.network.Connection;
-+import net.minecraft.network.PacketListener;
-+import net.minecraft.network.protocol.Packet;
-+import net.minecraft.server.MinecraftServer;
-+import org.bukkit.event.Cancellable;
-+import org.bukkit.event.Event;
-+import org.bukkit.event.HandlerList;
-+import org.jetbrains.annotations.NotNull;
-+
-+public class PacketReceiveEvent extends Event implements Cancellable {
-+
-+    private static final HandlerList handlers = new HandlerList();
-+
-+    private Packet<?> packet;
-+    private final Connection connection;
-+    private final PacketListener listener;
-+    private boolean cancelled;
-+
-+    public PacketReceiveEvent(Packet<?> packet, Connection connection, PacketListener listener) {
-+        super(!MCUtil.isMainThread());
-+        this.packet = packet;
-+        this.connection = connection;
-+        this.listener = listener;
-+    }
-+
-+    public Packet<?> getPacket() {
-+        return packet;
-+    }
-+
-+    public void setPacket(Packet<?> packet) {
-+        this.packet = packet;
-+    }
-+
-+    public Connection getConnection() {
-+        return connection;
-+    }
-+
-+    public PacketListener getListener() {
-+        return listener;
-+    }
-+
-+    @Override
-+    public @NotNull HandlerList getHandlers() {
-+        return handlers;
-+    }
-+
-+    @NotNull
-+    public static HandlerList getHandlerList() {
-+        return handlers;
-+    }
-+
-+    @Override
-+    public boolean isCancelled() {
-+        return cancelled;
-+    }
-+
-+    @Override
-+    public void setCancelled(boolean cancel) {
-+        cancelled = cancel;
-+    }
-+}
-diff --git a/src/main/java/de/erethon/PacketSendEvent.java b/src/main/java/de/erethon/PacketSendEvent.java
-new file mode 100644
-index 0000000000000000000000000000000000000000..a62ac149e0133f232128e6965d28f8c779ad5751
---- /dev/null
-+++ b/src/main/java/de/erethon/PacketSendEvent.java
-@@ -0,0 +1,63 @@
-+package de.erethon;
-+
-+import io.papermc.paper.util.MCUtil;
-+import net.minecraft.network.Connection;
-+import net.minecraft.network.PacketSendListener;
-+import net.minecraft.network.protocol.Packet;
-+import org.bukkit.event.Cancellable;
-+import org.bukkit.event.Event;
-+import org.bukkit.event.HandlerList;
-+import org.jetbrains.annotations.NotNull;
-+import javax.annotation.Nullable;
-+
-+public class PacketSendEvent extends Event implements Cancellable {
-+    private static final HandlerList handlers = new HandlerList();
-+
-+    private Packet<?> packet;
-+    private final Connection connection;
-+    private final PacketSendListener listener;
-+    private boolean cancelled;
-+
-+    public PacketSendEvent(Packet<?> packet, Connection connection, PacketSendListener listener) {
-+        super(!MCUtil.isMainThread());
-+        this.packet = packet;
-+        this.connection = connection;
-+        this.listener = listener;
-+    }
-+
-+    public Packet<?> getPacket() {
-+        return packet;
-+    }
-+
-+    public void setPacket(Packet<?> packet) {
-+        this.packet = packet;
-+    }
-+
-+    public Connection getConnection() {
-+        return connection;
-+    }
-+
-+    public @Nullable PacketSendListener getListener() {
-+        return listener;
-+    }
-+
-+    @Override
-+    public @NotNull HandlerList getHandlers() {
-+        return handlers;
-+    }
-+
-+    @NotNull
-+    public static HandlerList getHandlerList() {
-+        return handlers;
-+    }
-+
-+    @Override
-+    public boolean isCancelled() {
-+        return cancelled;
-+    }
-+
-+    @Override
-+    public void setCancelled(boolean cancel) {
-+        cancelled = cancel;
-+    }
-+}
 diff --git a/src/main/java/net/minecraft/network/Connection.java b/src/main/java/net/minecraft/network/Connection.java
 index 3e550f8e7cd4f4e16f499a8a2a4b95420270f07a..a5f9f2542af86ce95fb31887260fd88fc5f84fb2 100644
 --- a/src/main/java/net/minecraft/network/Connection.java
@@ -189,7 +50,7 @@ index 3e550f8e7cd4f4e16f499a8a2a4b95420270f07a..a5f9f2542af86ce95fb31887260fd88f
          if (connected && (InnerUtil.canSendImmediate(this, packet)
              || (io.papermc.paper.util.MCUtil.isMainThread() && packet.isReady() && this.pendingActions.isEmpty()
 diff --git a/src/main/java/net/minecraft/server/level/ServerPlayer.java b/src/main/java/net/minecraft/server/level/ServerPlayer.java
-index 71882332ee61023d656a6de3955ca34fcef1f536..66cae5b07dd38af6bdd9e465118fb23113b13364 100644
+index 763cffdc2e1e2e7cc9af88cc46bbaa240a20fd0d..90afafbde4b27087ca8268fc6aebaf85cae25ccd 100644
 --- a/src/main/java/net/minecraft/server/level/ServerPlayer.java
 +++ b/src/main/java/net/minecraft/server/level/ServerPlayer.java
 @@ -6,29 +6,11 @@ import com.mojang.datafixers.util.Either;
@@ -322,18 +183,7 @@ index 71882332ee61023d656a6de3955ca34fcef1f536..66cae5b07dd38af6bdd9e465118fb231
  import net.minecraft.world.item.crafting.RecipeHolder;
  import net.minecraft.world.level.ChunkPos;
  import net.minecraft.world.level.GameRules;
-@@ -158,21 +93,11 @@ import net.minecraft.world.level.portal.DimensionTransition;
- import net.minecraft.world.level.storage.LevelData;
- import net.minecraft.world.phys.AABB;
- import net.minecraft.world.phys.Vec3;
--import net.minecraft.world.scores.PlayerTeam;
--import net.minecraft.world.scores.ScoreAccess;
--import net.minecraft.world.scores.ScoreHolder;
--import org.slf4j.Logger;
--import net.minecraft.world.Container;
--import net.minecraft.world.InteractionHand;
--import net.minecraft.world.MenuProvider;
--import net.minecraft.world.damagesource.CombatTracker;
+@@ -170,10 +105,8 @@ import net.minecraft.world.damagesource.CombatTracker;
  import net.minecraft.world.item.enchantment.EnchantmentEffectComponents;
  import net.minecraft.world.item.enchantment.EnchantmentHelper;
  import net.minecraft.world.item.trading.MerchantOffers;
@@ -345,7 +195,7 @@ index 71882332ee61023d656a6de3955ca34fcef1f536..66cae5b07dd38af6bdd9e465118fb231
  import org.bukkit.Bukkit;
  import org.bukkit.Location;
  import org.bukkit.WeatherType;
-@@ -186,17 +111,17 @@ import org.bukkit.craftbukkit.util.CraftDimensionUtil;
+@@ -187,17 +120,17 @@ import org.bukkit.craftbukkit.util.CraftDimensionUtil;
  import org.bukkit.craftbukkit.util.CraftLocation;
  import org.bukkit.entity.Player;
  import org.bukkit.event.entity.EntityExhaustionEvent;
@@ -371,7 +221,7 @@ index 71882332ee61023d656a6de3955ca34fcef1f536..66cae5b07dd38af6bdd9e465118fb231
  // CraftBukkit end
  
  public class ServerPlayer extends net.minecraft.world.entity.player.Player implements ca.spottedleaf.moonrise.patches.chunk_system.player.ChunkSystemServerPlayer { // Paper - rewrite chunk system
-@@ -333,6 +258,8 @@ public class ServerPlayer extends net.minecraft.world.entity.player.Player imple
+@@ -333,6 +266,8 @@ public class ServerPlayer extends net.minecraft.world.entity.player.Player imple
      }
      // Paper end - rewrite chunk system
  
@@ -380,7 +230,7 @@ index 71882332ee61023d656a6de3955ca34fcef1f536..66cae5b07dd38af6bdd9e465118fb231
      public ServerPlayer(MinecraftServer server, ServerLevel world, GameProfile profile, ClientInformation clientOptions) {
          super(world, world.getSharedSpawnPos(), world.getSharedSpawnAngle(), profile);
          this.chatVisibility = ChatVisiblity.FULL;
-@@ -2946,3 +2873,4 @@ public class ServerPlayer extends net.minecraft.world.entity.player.Player imple
+@@ -2944,3 +2879,4 @@ public class ServerPlayer extends net.minecraft.world.entity.player.Player imple
      }
      // CraftBukkit end
  }

@@ -63,7 +63,7 @@ index 0000000000000000000000000000000000000000..afe4ed93f622cc46c0bb1faa12976e44
 +    }
 +}
 diff --git a/src/main/java/net/minecraft/server/level/ServerPlayer.java b/src/main/java/net/minecraft/server/level/ServerPlayer.java
-index 66cae5b07dd38af6bdd9e465118fb23113b13364..b84a7d7d158d919b35c4bbd727e95f97e0b92998 100644
+index 90afafbde4b27087ca8268fc6aebaf85cae25ccd..83e5c7c8ce1911d64bc51ab6a2ad72cbcb01ccda 100644
 --- a/src/main/java/net/minecraft/server/level/ServerPlayer.java
 +++ b/src/main/java/net/minecraft/server/level/ServerPlayer.java
 @@ -6,6 +6,7 @@ import com.mojang.datafixers.util.Either;
@@ -74,7 +74,7 @@ index 66cae5b07dd38af6bdd9e465118fb23113b13364..b84a7d7d158d919b35c4bbd727e95f97
  import io.papermc.paper.adventure.PaperAdventure;
  import net.minecraft.*;
  import net.minecraft.advancements.CriteriaTriggers;
-@@ -2343,7 +2344,7 @@ public class ServerPlayer extends net.minecraft.world.entity.player.Player imple
+@@ -2349,7 +2350,7 @@ public class ServerPlayer extends net.minecraft.world.entity.player.Player imple
          if (this.gameMode.getGameModeForPlayer() == GameType.SPECTATOR) {
              this.setCamera(target);
          } else {
@@ -84,7 +84,7 @@ index 66cae5b07dd38af6bdd9e465118fb23113b13364..b84a7d7d158d919b35c4bbd727e95f97
  
      }
 diff --git a/src/main/java/net/minecraft/server/network/ServerGamePacketListenerImpl.java b/src/main/java/net/minecraft/server/network/ServerGamePacketListenerImpl.java
-index 7796e191747be545e744564a2b0b65790f69114d..47fa5fb1884ee33f03f875951442a27d0df12130 100644
+index 60ff21c8df4168f14da04a12073bde47cd4693c4..0529aae7132224a50787486890c40b84237aa5e5 100644
 --- a/src/main/java/net/minecraft/server/network/ServerGamePacketListenerImpl.java
 +++ b/src/main/java/net/minecraft/server/network/ServerGamePacketListenerImpl.java
 @@ -314,6 +314,7 @@ public class ServerGamePacketListenerImpl extends ServerCommonPacketListenerImpl
@@ -96,7 +96,7 @@ index 7796e191747be545e744564a2b0b65790f69114d..47fa5fb1884ee33f03f875951442a27d
  
      // CraftBukkit start - add fields and methods
 diff --git a/src/main/java/net/minecraft/world/entity/Entity.java b/src/main/java/net/minecraft/world/entity/Entity.java
-index be9976a994dd04cf53048567576dd3484facf625..4e1af50ebd065a494cb5aa5a35f008fe7be4ce3e 100644
+index 490ee48346395fcbaf2eb0151e9248f18974fea6..69841a165aa9d11b7940973b0e9321dbf6b71880 100644
 --- a/src/main/java/net/minecraft/world/entity/Entity.java
 +++ b/src/main/java/net/minecraft/world/entity/Entity.java
 @@ -10,6 +10,7 @@ import it.unimi.dsi.fastutil.doubles.DoubleList;
@@ -125,7 +125,7 @@ index be9976a994dd04cf53048567576dd3484facf625..4e1af50ebd065a494cb5aa5a35f008fe
          return this.calculateViewVector(this.getViewXRot(tickDelta), this.getViewYRot(tickDelta));
      }
 diff --git a/src/main/java/net/minecraft/world/entity/ai/attributes/Attributes.java b/src/main/java/net/minecraft/world/entity/ai/attributes/Attributes.java
-index da56b9704ce486f4c5956cc044a73b10fd2db140..4930eef744cdb9f1855502a3186235cf483358b9 100644
+index 5fd346c520b73b30fabff6094f478d5989d2fca7..0a61157403f04a2c278e229c1de03f708425f435 100644
 --- a/src/main/java/net/minecraft/world/entity/ai/attributes/Attributes.java
 +++ b/src/main/java/net/minecraft/world/entity/ai/attributes/Attributes.java
 @@ -39,6 +39,30 @@ public class Attributes {
@@ -292,7 +292,7 @@ index 09bcbc0ae36e4e69fee87a7e0c49acf496117a39..9e1c0d47dec605309e3ad8a680793665
  
      @io.papermc.paper.annotation.DoNotUse @Deprecated // Paper - Add PlayerShieldDisableEvent
 diff --git a/src/main/java/org/bukkit/craftbukkit/entity/CraftPlayer.java b/src/main/java/org/bukkit/craftbukkit/entity/CraftPlayer.java
-index d01b45a48d412e3cb591acee101730704574448a..72ae63e23229c62ee72b248dde1f82710b22d931 100644
+index a0d5082590ee03060f0dbb4770d196efc316c328..755c31718c06fa9b5c3cccc747489680a5e249a3 100644
 --- a/src/main/java/org/bukkit/craftbukkit/entity/CraftPlayer.java
 +++ b/src/main/java/org/bukkit/craftbukkit/entity/CraftPlayer.java
 @@ -204,8 +204,8 @@ public class CraftPlayer extends CraftHumanEntity implements Player {

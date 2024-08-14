@@ -4,28 +4,15 @@ Date: Sun, 30 Jun 2024 18:10:06 +0200
 Subject: [PATCH] Spellbook
 
 
-diff --git a/src/main/java/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/NewChunkHolder.java b/src/main/java/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/NewChunkHolder.java
-index 792558916e2ca77b4a0ccfc48c3bb9d3b19b68e7..3e3c3b147047a44ffda860aa625fb9f23f8464a9 100644
---- a/src/main/java/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/NewChunkHolder.java
-+++ b/src/main/java/ca/spottedleaf/moonrise/patches/chunk_system/scheduling/NewChunkHolder.java
-@@ -1874,6 +1874,7 @@ public final class NewChunkHolder {
-             }
-         } catch (final Throwable thr) {
-             LOGGER.error("Failed to save entity data (" + this.chunkX + "," + this.chunkZ + ") in world '" + WorldUtil.getWorldName(this.world) + "'");
-+            thr.printStackTrace(); // Papyrus - actual useful error
-         }
- 
-         return true;
 diff --git a/src/main/java/de/erethon/papyrus/ContainerLoadEvent.java b/src/main/java/de/erethon/papyrus/ContainerLoadEvent.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..573a606ed3f9d42e205dee492228044783613847
+index 0000000000000000000000000000000000000000..fb2f54de6c8046b0d691116dc09c97118a682664
 --- /dev/null
 +++ b/src/main/java/de/erethon/papyrus/ContainerLoadEvent.java
-@@ -0,0 +1,30 @@
+@@ -0,0 +1,29 @@
 +package de.erethon.papyrus;
 +
 +import net.minecraft.core.NonNullList;
-+import net.minecraft.world.entity.player.Player;
 +import net.minecraft.world.item.ItemStack;
 +import org.bukkit.event.Event;
 +import org.bukkit.event.HandlerList;
@@ -203,20 +190,17 @@ index 0000000000000000000000000000000000000000..e089787a94d60840792ad0ee31e46474
 +}
 diff --git a/src/main/java/de/erethon/papyrus/MobSpawnSettingsEvent.java b/src/main/java/de/erethon/papyrus/MobSpawnSettingsEvent.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..b9c5ed60d39facb2ef54d408941d88a8d041e151
+index 0000000000000000000000000000000000000000..49d8917391362e79b3151060fefe196ac536f024
 --- /dev/null
 +++ b/src/main/java/de/erethon/papyrus/MobSpawnSettingsEvent.java
-@@ -0,0 +1,52 @@
+@@ -0,0 +1,49 @@
 +package de.erethon.papyrus;
 +
 +import net.minecraft.core.BlockPos;
 +import net.minecraft.core.Holder;
 +import net.minecraft.server.level.ServerLevel;
 +import net.minecraft.util.random.WeightedRandomList;
-+import net.minecraft.world.entity.Mob;
 +import net.minecraft.world.entity.MobCategory;
-+import net.minecraft.world.entity.SpawnGroupData;
-+import net.minecraft.world.entity.player.Player;
 +import net.minecraft.world.level.StructureManager;
 +import net.minecraft.world.level.biome.Biome;
 +import net.minecraft.world.level.biome.MobSpawnSettings;
@@ -257,6 +241,144 @@ index 0000000000000000000000000000000000000000..b9c5ed60d39facb2ef54d408941d88a8
 +
 +    public static HandlerList getHandlerList() {
 +        return handlers;
++    }
++}
+diff --git a/src/main/java/de/erethon/papyrus/PacketReceiveEvent.java b/src/main/java/de/erethon/papyrus/PacketReceiveEvent.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..62d6111aa93095d1c50f330ced4bd28f29a3a27e
+--- /dev/null
++++ b/src/main/java/de/erethon/papyrus/PacketReceiveEvent.java
+@@ -0,0 +1,63 @@
++package de.erethon.papyrus;
++
++import io.papermc.paper.util.MCUtil;
++import net.minecraft.network.Connection;
++import net.minecraft.network.PacketListener;
++import net.minecraft.network.protocol.Packet;
++import org.bukkit.event.Cancellable;
++import org.bukkit.event.Event;
++import org.bukkit.event.HandlerList;
++import org.jetbrains.annotations.NotNull;
++
++public class PacketReceiveEvent extends Event implements Cancellable {
++
++    private static final HandlerList handlers = new HandlerList();
++
++    private Packet<?> packet;
++    private final Connection connection;
++    private final PacketListener listener;
++    private boolean cancelled;
++
++    public PacketReceiveEvent(Packet<?> packet, Connection connection, PacketListener listener) {
++        super(!MCUtil.isMainThread());
++        this.packet = packet;
++        this.connection = connection;
++        this.listener = listener;
++    }
++
++    public Packet<?> getPacket() {
++        return packet;
++    }
++
++    public void setPacket(Packet<?> packet) {
++        this.packet = packet;
++    }
++
++    public Connection getConnection() {
++        return connection;
++    }
++
++    public PacketListener getListener() {
++        return listener;
++    }
++
++    @Override
++    public @NotNull HandlerList getHandlers() {
++        return handlers;
++    }
++
++    @NotNull
++    public static HandlerList getHandlerList() {
++        return handlers;
++    }
++
++    @Override
++    public boolean isCancelled() {
++        return cancelled;
++    }
++
++    @Override
++    public void setCancelled(boolean cancel) {
++        cancelled = cancel;
++    }
++}
+diff --git a/src/main/java/de/erethon/papyrus/PacketSendEvent.java b/src/main/java/de/erethon/papyrus/PacketSendEvent.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..646501ad8d45d5c958b4a8c0678daa307b7cc18d
+--- /dev/null
++++ b/src/main/java/de/erethon/papyrus/PacketSendEvent.java
+@@ -0,0 +1,63 @@
++package de.erethon.papyrus;
++
++import io.papermc.paper.util.MCUtil;
++import net.minecraft.network.Connection;
++import net.minecraft.network.PacketSendListener;
++import net.minecraft.network.protocol.Packet;
++import org.bukkit.event.Cancellable;
++import org.bukkit.event.Event;
++import org.bukkit.event.HandlerList;
++import org.jetbrains.annotations.NotNull;
++import javax.annotation.Nullable;
++
++public class PacketSendEvent extends Event implements Cancellable {
++    private static final HandlerList handlers = new HandlerList();
++
++    private Packet<?> packet;
++    private final Connection connection;
++    private final PacketSendListener listener;
++    private boolean cancelled;
++
++    public PacketSendEvent(Packet<?> packet, Connection connection, PacketSendListener listener) {
++        super(!MCUtil.isMainThread());
++        this.packet = packet;
++        this.connection = connection;
++        this.listener = listener;
++    }
++
++    public Packet<?> getPacket() {
++        return packet;
++    }
++
++    public void setPacket(Packet<?> packet) {
++        this.packet = packet;
++    }
++
++    public Connection getConnection() {
++        return connection;
++    }
++
++    public @Nullable PacketSendListener getListener() {
++        return listener;
++    }
++
++    @Override
++    public @NotNull HandlerList getHandlers() {
++        return handlers;
++    }
++
++    @NotNull
++    public static HandlerList getHandlerList() {
++        return handlers;
++    }
++
++    @Override
++    public boolean isCancelled() {
++        return cancelled;
++    }
++
++    @Override
++    public void setCancelled(boolean cancel) {
++        cancelled = cancel;
 +    }
 +}
 diff --git a/src/main/java/de/erethon/papyrus/PlayerInventoryLoadEvent.java b/src/main/java/de/erethon/papyrus/PlayerInventoryLoadEvent.java
@@ -300,8 +422,23 @@ index 0000000000000000000000000000000000000000..7d90eab2af9b1714b18be16bc65d78c5
 +        return handlers;
 +    }
 +}
+diff --git a/src/main/java/net/minecraft/network/Connection.java b/src/main/java/net/minecraft/network/Connection.java
+index a5f9f2542af86ce95fb31887260fd88fc5f84fb2..3c2d75e07e949367cf33ace7178504e79b856552 100644
+--- a/src/main/java/net/minecraft/network/Connection.java
++++ b/src/main/java/net/minecraft/network/Connection.java
+@@ -4,8 +4,8 @@ import com.google.common.base.Suppliers;
+ import com.google.common.collect.Queues;
+ import com.google.common.util.concurrent.ThreadFactoryBuilder;
+ import com.mojang.logging.LogUtils;
+-import de.erethon.PacketReceiveEvent;
+-import de.erethon.PacketSendEvent;
++import de.erethon.papyrus.PacketReceiveEvent;
++import de.erethon.papyrus.PacketSendEvent;
+ import io.netty.bootstrap.Bootstrap;
+ import io.netty.channel.Channel;
+ import io.netty.channel.ChannelException;
 diff --git a/src/main/java/net/minecraft/network/protocol/game/ClientboundAddEntityPacket.java b/src/main/java/net/minecraft/network/protocol/game/ClientboundAddEntityPacket.java
-index 4126d82e83810126eb4a41b4587dc993542f3793..3cd39428b417452b1f64555aa7211839e28c2a95 100644
+index 792b9a72a610cc512a8920d61013b6ba02f71e47..22b0681fb428c5566c2bec5d7b2d8f2bf87757d0 100644
 --- a/src/main/java/net/minecraft/network/protocol/game/ClientboundAddEntityPacket.java
 +++ b/src/main/java/net/minecraft/network/protocol/game/ClientboundAddEntityPacket.java
 @@ -13,6 +13,7 @@ import net.minecraft.util.Mth;
@@ -343,7 +480,7 @@ index 4126d82e83810126eb4a41b4587dc993542f3793..3cd39428b417452b1f64555aa7211839
          );
      }
  
-@@ -68,13 +73,12 @@ public class ClientboundAddEntityPacket implements Packet<ClientGamePacketListen
+@@ -68,12 +73,17 @@ public class ClientboundAddEntityPacket implements Packet<ClientGamePacketListen
              entity.getType(),
              entityData,
              entity.getDeltaMovement(),
@@ -353,14 +490,17 @@ index 4126d82e83810126eb4a41b4587dc993542f3793..3cd39428b417452b1f64555aa7211839
          );
      }
  
--    public ClientboundAddEntityPacket(
--        int id, UUID uuid, double x, double y, double z, float pitch, float yaw, EntityType<?> entityType, int entityData, Vec3 velocity, double headYaw
--    ) {
-+    public ClientboundAddEntityPacket(int id, UUID uuid, double x, double y, double z, float pitch, float yaw, EntityType<?> entityType, int entityData, Vec3 velocity, double headYaw, Entity entity) {
-         this.id = id;
++    public ClientboundAddEntityPacket(int entityId, UUID uuid, double x, double y, double z, float pitch, float yaw, EntityType<?> entityType, int entityData, Vec3 velocity, double headYaw) {
++        this(entityId, uuid, x, y, z, pitch, yaw, entityType, entityData, velocity, headYaw, null);
++    }
++
+     public ClientboundAddEntityPacket(
+-        int entityId, UUID uuid, double x, double y, double z, float pitch, float yaw, EntityType<?> entityType, int entityData, Vec3 velocity, double headYaw
++        int entityId, UUID uuid, double x, double y, double z, float pitch, float yaw, EntityType<?> entityType, int entityData, Vec3 velocity, double headYaw, Entity entity
+     ) {
+         this.id = entityId;
          this.uuid = uuid;
-         this.x = x;
-@@ -88,6 +92,10 @@ public class ClientboundAddEntityPacket implements Packet<ClientGamePacketListen
+@@ -88,6 +98,10 @@ public class ClientboundAddEntityPacket implements Packet<ClientGamePacketListen
          this.xa = (int)(Mth.clamp(velocity.x, -3.9, 3.9) * 8000.0);
          this.ya = (int)(Mth.clamp(velocity.y, -3.9, 3.9) * 8000.0);
          this.za = (int)(Mth.clamp(velocity.z, -3.9, 3.9) * 8000.0);
@@ -371,7 +511,7 @@ index 4126d82e83810126eb4a41b4587dc993542f3793..3cd39428b417452b1f64555aa7211839
      }
  
      private ClientboundAddEntityPacket(RegistryFriendlyByteBuf buf) {
-@@ -104,6 +112,9 @@ public class ClientboundAddEntityPacket implements Packet<ClientGamePacketListen
+@@ -104,6 +118,9 @@ public class ClientboundAddEntityPacket implements Packet<ClientGamePacketListen
          this.xa = buf.readShort();
          this.ya = buf.readShort();
          this.za = buf.readShort();
@@ -405,10 +545,10 @@ index 8c2f9f549b5155b8d8fecbc22164b334805381e2..07378cc827d424127156d5b71c8381c6
  import net.minecraft.commands.Commands;
  import net.minecraft.commands.arguments.selector.options.EntitySelectorOptions;
 diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
-index 90cdfbe2b346bda715b37a3bf59dac7e494b0bd7..8ce1e6b0b5e59901bb2fa2f6900c88128652af28 100644
+index 496c6f0b18bfe5093cea9501c80d1fe585e3a242..69b8bd4a555a3192e137a510d00822838e117a28 100644
 --- a/src/main/java/net/minecraft/server/MinecraftServer.java
 +++ b/src/main/java/net/minecraft/server/MinecraftServer.java
-@@ -1628,6 +1628,9 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+@@ -1632,6 +1632,9 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
          // Paper start - Server Tick Events
          long endTime = System.nanoTime();
          long remaining = (TICK_TIME - (endTime - lastTick)) - catchupTime;
@@ -416,8 +556,8 @@ index 90cdfbe2b346bda715b37a3bf59dac7e494b0bd7..8ce1e6b0b5e59901bb2fa2f6900c8812
 +            server.getSpellbookAPI().getQueue().run(); // Papyrus - Spellbook
 +        }
          new com.destroystokyo.paper.event.server.ServerTickEndEvent(this.tickCount, ((double)(endTime - lastTick) / 1000000D), remaining).callEvent();
+         this.server.spark.tickEnd(((double)(endTime - lastTick) / 1000000D)); // Paper - spark
          // Paper end - Server Tick Events
-         this.profiler.push("tallying");
 diff --git a/src/main/java/net/minecraft/server/level/ServerEntity.java b/src/main/java/net/minecraft/server/level/ServerEntity.java
 index 8ea2f24695f5dad55e21f238b69442513e7a90c6..c7956ac86281f10ba753079261216afac6aa88c0 100644
 --- a/src/main/java/net/minecraft/server/level/ServerEntity.java
@@ -445,7 +585,7 @@ index 8ea2f24695f5dad55e21f238b69442513e7a90c6..c7956ac86281f10ba753079261216afa
  
              set.clear();
 diff --git a/src/main/java/net/minecraft/server/level/ServerPlayer.java b/src/main/java/net/minecraft/server/level/ServerPlayer.java
-index b84a7d7d158d919b35c4bbd727e95f97e0b92998..416fb8ad10abe180570c7accf6fe376c0591a562 100644
+index 83e5c7c8ce1911d64bc51ab6a2ad72cbcb01ccda..0be107dec659721f6f9c74ec9936d208d1c0214f 100644
 --- a/src/main/java/net/minecraft/server/level/ServerPlayer.java
 +++ b/src/main/java/net/minecraft/server/level/ServerPlayer.java
 @@ -6,7 +6,7 @@ import com.mojang.datafixers.util.Either;
@@ -457,7 +597,7 @@ index b84a7d7d158d919b35c4bbd727e95f97e0b92998..416fb8ad10abe180570c7accf6fe376c
  import io.papermc.paper.adventure.PaperAdventure;
  import net.minecraft.*;
  import net.minecraft.advancements.CriteriaTriggers;
-@@ -2344,7 +2344,7 @@ public class ServerPlayer extends net.minecraft.world.entity.player.Player imple
+@@ -2350,7 +2350,7 @@ public class ServerPlayer extends net.minecraft.world.entity.player.Player imple
          if (this.gameMode.getGameModeForPlayer() == GameType.SPECTATOR) {
              this.setCamera(target);
          } else {
@@ -466,16 +606,16 @@ index b84a7d7d158d919b35c4bbd727e95f97e0b92998..416fb8ad10abe180570c7accf6fe376c
          }
  
      }
-@@ -2874,4 +2874,3 @@ public class ServerPlayer extends net.minecraft.world.entity.player.Player imple
+@@ -2880,4 +2880,3 @@ public class ServerPlayer extends net.minecraft.world.entity.player.Player imple
      }
      // CraftBukkit end
  }
 -
 diff --git a/src/main/java/net/minecraft/server/network/ServerGamePacketListenerImpl.java b/src/main/java/net/minecraft/server/network/ServerGamePacketListenerImpl.java
-index 47fa5fb1884ee33f03f875951442a27d0df12130..358b062a3da4c9890e3a9845350fef798f2408d6 100644
+index 0529aae7132224a50787486890c40b84237aa5e5..4203499369d115120605b4c2937c3ca0405843f7 100644
 --- a/src/main/java/net/minecraft/server/network/ServerGamePacketListenerImpl.java
 +++ b/src/main/java/net/minecraft/server/network/ServerGamePacketListenerImpl.java
-@@ -1383,6 +1383,10 @@ public class ServerGamePacketListenerImpl extends ServerCommonPacketListenerImpl
+@@ -1378,6 +1378,10 @@ public class ServerGamePacketListenerImpl extends ServerCommonPacketListenerImpl
                                              this.teleport(this.player.getX(), this.player.getY(), this.player.getZ(), this.player.getYRot(), this.player.getXRot());
                                              return;
                                          }
@@ -487,7 +627,7 @@ index 47fa5fb1884ee33f03f875951442a27d0df12130..358b062a3da4c9890e3a9845350fef79
                                      }
                                  }
 diff --git a/src/main/java/net/minecraft/server/players/PlayerList.java b/src/main/java/net/minecraft/server/players/PlayerList.java
-index dfcaff15a145bf29e8a538d853bb04aec8c36179..0a9303612874797abfa08972c7f4c0bdaab251e6 100644
+index 43eeb8ce4bc350c2b524ade11ca25d8d4d21bea5..0448a9d61fb337e625ee30b282e67e398156132d 100644
 --- a/src/main/java/net/minecraft/server/players/PlayerList.java
 +++ b/src/main/java/net/minecraft/server/players/PlayerList.java
 @@ -25,6 +25,8 @@ import java.util.UUID;
@@ -531,7 +671,7 @@ index dfcaff15a145bf29e8a538d853bb04aec8c36179..0a9303612874797abfa08972c7f4c0bd
          ServerStatsCounter serverstatisticmanager = (ServerStatsCounter) player.getStats(); // CraftBukkit
  
          if (serverstatisticmanager != null) {
-@@ -1552,4 +1559,15 @@ public abstract class PlayerList {
+@@ -1553,4 +1560,15 @@ public abstract class PlayerList {
      public boolean isAllowCommandsForAllPlayers() {
          return this.allowCommandsForAllPlayers;
      }
@@ -616,7 +756,7 @@ index bb1a60180e58c1333e7bb33e8acf1b0225eda8a8..9fbe8516c6b55da958c106e67b4c41d8
  
      public DamageSource(Holder<DamageType> type, @Nullable Entity source, @Nullable Entity attacker) {
 diff --git a/src/main/java/net/minecraft/world/entity/Entity.java b/src/main/java/net/minecraft/world/entity/Entity.java
-index 4e1af50ebd065a494cb5aa5a35f008fe7be4ce3e..bc58c9994f6a99671e661427fc4f324645c2df5d 100644
+index 69841a165aa9d11b7940973b0e9321dbf6b71880..dbcdd0e68fe7bcbe42b04203a9c803a98d4da3b1 100644
 --- a/src/main/java/net/minecraft/world/entity/Entity.java
 +++ b/src/main/java/net/minecraft/world/entity/Entity.java
 @@ -6,11 +6,12 @@ import com.google.common.collect.Lists;
@@ -633,7 +773,7 @@ index 4e1af50ebd065a494cb5aa5a35f008fe7be4ce3e..bc58c9994f6a99671e661427fc4f3246
  import it.unimi.dsi.fastutil.objects.Object2DoubleArrayMap;
  import it.unimi.dsi.fastutil.objects.Object2DoubleMap;
  import java.util.ArrayList;
-@@ -431,6 +432,8 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
+@@ -430,6 +431,8 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
      private UUID originWorld;
      public boolean freezeLocked = false; // Paper - Freeze Tick Lock API
      public boolean fixedPose = false; // Paper - Expand Pose API
@@ -731,7 +871,7 @@ index cb61462d4691a055a4b25f7b953609d8a154fdfe..73ccb55889de521c65c76c7e15bbd6d1
          float f = this.spawnDimensionsScale * this.getWidth() / 2.0F;
          float f1 = this.spawnDimensionsScale * this.getHeight();
 diff --git a/src/main/java/net/minecraft/world/entity/LivingEntity.java b/src/main/java/net/minecraft/world/entity/LivingEntity.java
-index fe435d4a387bb28be6831cec0c8bb0a7c8b603a4..3973cadfa64af5cafa47e6e73c021382edf1f2ad 100644
+index ccd9dff20a60f019e0c320acfb526b8bf3e5f806..754ee245ac51046d7b31d1e26b7d542d979e5974 100644
 --- a/src/main/java/net/minecraft/world/entity/LivingEntity.java
 +++ b/src/main/java/net/minecraft/world/entity/LivingEntity.java
 @@ -11,6 +11,9 @@ import com.mojang.datafixers.util.Pair;
@@ -963,7 +1103,7 @@ index fe435d4a387bb28be6831cec0c8bb0a7c8b603a4..3973cadfa64af5cafa47e6e73c021382
          return false;
      }
 diff --git a/src/main/java/net/minecraft/world/entity/Mob.java b/src/main/java/net/minecraft/world/entity/Mob.java
-index 7b93c6a04cca2ac31d137f06ef83bb08559b10bf..ef75af302a684b2f03e5bd79a0714812328c0c85 100644
+index bd7c6ce15698aed70376c109ba36f52d6794a2f8..b29b147a9f1c9e9447c8991209a6724b31beb642 100644
 --- a/src/main/java/net/minecraft/world/entity/Mob.java
 +++ b/src/main/java/net/minecraft/world/entity/Mob.java
 @@ -13,6 +13,8 @@ import java.util.Optional;
@@ -984,7 +1124,7 @@ index 7b93c6a04cca2ac31d137f06ef83bb08559b10bf..ef75af302a684b2f03e5bd79a0714812
      }
  
      protected PathNavigation createNavigation(Level world) {
-@@ -1404,6 +1406,14 @@ public abstract class Mob extends LivingEntity implements EquipmentUser, Leashab
+@@ -1402,6 +1404,14 @@ public abstract class Mob extends LivingEntity implements EquipmentUser, Leashab
          if (!attributemodifiable.hasModifier(Mob.RANDOM_SPAWN_BONUS_ID)) {
              attributemodifiable.addPermanentModifier(new AttributeModifier(Mob.RANDOM_SPAWN_BONUS_ID, randomsource.triangle(0.0D, 0.11485000000000001D), AttributeModifier.Operation.ADD_MULTIPLIED_BASE));
          }
@@ -999,7 +1139,7 @@ index 7b93c6a04cca2ac31d137f06ef83bb08559b10bf..ef75af302a684b2f03e5bd79a0714812
  
          this.setLeftHanded(randomsource.nextFloat() < 0.05F);
          return entityData;
-@@ -1712,16 +1722,23 @@ public abstract class Mob extends LivingEntity implements EquipmentUser, Leashab
+@@ -1710,18 +1720,24 @@ public abstract class Mob extends LivingEntity implements EquipmentUser, Leashab
      }
  
      @Override
@@ -1021,14 +1161,24 @@ index 7b93c6a04cca2ac31d137f06ef83bb08559b10bf..ef75af302a684b2f03e5bd79a0714812
 +        if (crit < getAttributeValue(Attributes.STAT_CRITCHANCE)) {
 +            dmg = (float) (dmg + getAttributeValue(Attributes.STAT_CRITDMG));
          }
-+        boolean flag = target.hurt(damagesource, dmg);
  
 -        boolean flag = target.hurt(damagesource, f);
  
-         if (flag) {
+-        if (flag) {
++        if (true) { // TODO: Papyrus - fix this properly
              float f1 = this.getKnockback(target, damagesource);
+ 
+             if (f1 > 0.0F && target instanceof LivingEntity) {
+@@ -1742,6 +1758,7 @@ public abstract class Mob extends LivingEntity implements EquipmentUser, Leashab
+             this.setLastHurtMob(target);
+             this.playAttackSound();
+         }
++        boolean flag = target.hurt(damagesource, dmg);
+ 
+         return flag;
+     }
 diff --git a/src/main/java/net/minecraft/world/entity/ai/attributes/Attributes.java b/src/main/java/net/minecraft/world/entity/ai/attributes/Attributes.java
-index 4930eef744cdb9f1855502a3186235cf483358b9..b558075cfcf66fa0cdfafb0a0d1cae0d937ba507 100644
+index 0a61157403f04a2c278e229c1de03f708425f435..a749288b207c0272062e4562bcc5a607153b355f 100644
 --- a/src/main/java/net/minecraft/world/entity/ai/attributes/Attributes.java
 +++ b/src/main/java/net/minecraft/world/entity/ai/attributes/Attributes.java
 @@ -41,28 +41,34 @@ public class Attributes {
@@ -1420,7 +1570,7 @@ index 9e1c0d47dec605309e3ad8a680793665945138f3..e330bb9921d8ea986a759e783fb6acaa
  
      @io.papermc.paper.annotation.DoNotUse @Deprecated // Paper - Add PlayerShieldDisableEvent
 diff --git a/src/main/java/net/minecraft/world/entity/projectile/AbstractArrow.java b/src/main/java/net/minecraft/world/entity/projectile/AbstractArrow.java
-index ddf47dab1ab92c45e3eea09239d418a9798ed59e..a75be1f51183d78ebefe68360f560ac5c071fc8a 100644
+index 9ca29b3d4bf8bca5f51f3644e12fcbec2cb5d35e..26ec5343ef6f5dcee6b25cc990b7d2d5980fd336 100644
 --- a/src/main/java/net/minecraft/world/entity/projectile/AbstractArrow.java
 +++ b/src/main/java/net/minecraft/world/entity/projectile/AbstractArrow.java
 @@ -449,7 +449,7 @@ public abstract class AbstractArrow extends Projectile {
@@ -1485,7 +1635,7 @@ index 8575941fd238750c5d56843989a48bcbde2d8a88..edf55808a76006cc53b71835a8a79fba
  
                  if (world instanceof ServerLevel) {
 diff --git a/src/main/java/net/minecraft/world/entity/projectile/Projectile.java b/src/main/java/net/minecraft/world/entity/projectile/Projectile.java
-index 5f7d152f41eb85f17bcded4bc8099b998e5a338b..656813ed4808fb36719c9525e98fbbdc0c0067c8 100644
+index de64de5d1328d3e0826c9990eb7c7eca5088cb9c..93afc1b4a59910ba682ee7402bc4785b55d49b31 100644
 --- a/src/main/java/net/minecraft/world/entity/projectile/Projectile.java
 +++ b/src/main/java/net/minecraft/world/entity/projectile/Projectile.java
 @@ -1,10 +1,12 @@
@@ -1609,7 +1759,7 @@ index 2bb86c2d0c6b46e73a1ea191bb2be4586a85829b..3193a980131b4c241fbc1434abceec5e
  import javax.annotation.Nullable;
  import net.minecraft.Util;
 diff --git a/src/main/java/net/minecraft/world/level/NaturalSpawner.java b/src/main/java/net/minecraft/world/level/NaturalSpawner.java
-index ed8032495af9ce9c23419224814b8d27e4a97c17..0ead4c040c1c0ad10d075fbfd4a19b82c58416a0 100644
+index e524b27d185da3e88668f8ef107517272860bd66..59c07925e773223943b866fc58d6695a41052605 100644
 --- a/src/main/java/net/minecraft/world/level/NaturalSpawner.java
 +++ b/src/main/java/net/minecraft/world/level/NaturalSpawner.java
 @@ -1,6 +1,8 @@
@@ -1867,7 +2017,7 @@ index 9d93130f23addb18b97d7f5ec013faef17a74529..3d2d46facbad1731b68ee91288062bfd
  
      private CompoundTag getBukkitData() {
 diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-index dab7ddf04b8609d75fc06f6cf12c2cde3fdbd7e9..9cd8c5e54879d77c057b7b1e11a788555f4bba99 100644
+index 90b80d5df7b31914c21acf36070afa60fbb8e96a..4305d6c98da64f4fd91916b1a6069645f38cdf5c 100644
 --- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 +++ b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 @@ -13,6 +13,7 @@ import com.mojang.brigadier.StringReader;
@@ -1878,7 +2028,7 @@ index dab7ddf04b8609d75fc06f6cf12c2cde3fdbd7e9..9cd8c5e54879d77c057b7b1e11a78855
  import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
  import java.awt.image.BufferedImage;
  import java.io.ByteArrayOutputStream;
-@@ -381,6 +382,9 @@ public final class CraftServer implements Server {
+@@ -382,6 +383,9 @@ public final class CraftServer implements Server {
      }
      // Paper end - Folia reagion threading API
  
@@ -1888,10 +2038,10 @@ index dab7ddf04b8609d75fc06f6cf12c2cde3fdbd7e9..9cd8c5e54879d77c057b7b1e11a78855
      static {
          ConfigurationSerialization.registerClass(CraftOfflinePlayer.class);
          ConfigurationSerialization.registerClass(CraftPlayerProfile.class);
-@@ -475,6 +479,12 @@ public final class CraftServer implements Server {
-         }
+@@ -477,6 +481,12 @@ public final class CraftServer implements Server {
          this.potionBrewer = new io.papermc.paper.potion.PaperPotionBrewer(console); // Paper - custom potion mixes
          datapackManager = new io.papermc.paper.datapack.PaperDatapackManager(console.getPackRepository()); // Paper
+         this.spark = new io.papermc.paper.SparksFly(this); // Paper - spark
 +        spellbookAPI = new SpellbookAPI(this);
 +    }
 +
@@ -2133,7 +2283,7 @@ index d2bb0831394c03b620b2cbd8306cb82b621f34f7..94ce41b96bc2ed6bbe4a78c8e16ab270
 +    // Papyrus end
  }
 diff --git a/src/main/java/org/bukkit/craftbukkit/entity/CraftPlayer.java b/src/main/java/org/bukkit/craftbukkit/entity/CraftPlayer.java
-index 72ae63e23229c62ee72b248dde1f82710b22d931..4815c936a0b91cff7bf0a45a2f49890ced57f3da 100644
+index 755c31718c06fa9b5c3cccc747489680a5e249a3..186d1d1e8dd2c151a60614dbedd86b5244ffdad0 100644
 --- a/src/main/java/org/bukkit/craftbukkit/entity/CraftPlayer.java
 +++ b/src/main/java/org/bukkit/craftbukkit/entity/CraftPlayer.java
 @@ -428,14 +428,12 @@ public class CraftPlayer extends CraftHumanEntity implements Player {
@@ -2183,7 +2333,7 @@ index 4f1fa7dec78970bdfc184d3c1f1632dc9d75a574..60d462ba77a08f1f0aac1e58437d593c
 +    }
  }
 diff --git a/src/main/java/org/bukkit/craftbukkit/event/CraftEventFactory.java b/src/main/java/org/bukkit/craftbukkit/event/CraftEventFactory.java
-index 9c7cd9387f90d061aec76f7f0451a1da8b42ea3d..1d278f2d56c386d3c6e9610ec60af6b33a643c85 100644
+index 8dd85b9ca3b3e3429de4d0ec0654982589c6e93e..b0c39be827933facac7208f44c89ef5a3eeb6bd9 100644
 --- a/src/main/java/org/bukkit/craftbukkit/event/CraftEventFactory.java
 +++ b/src/main/java/org/bukkit/craftbukkit/event/CraftEventFactory.java
 @@ -15,6 +15,8 @@ import java.util.Map;
@@ -2195,7 +2345,7 @@ index 9c7cd9387f90d061aec76f7f0451a1da8b42ea3d..1d278f2d56c386d3c6e9610ec60af6b3
  import net.minecraft.core.BlockPos;
  import net.minecraft.core.Direction;
  import net.minecraft.network.protocol.game.ServerboundContainerClosePacket;
-@@ -1183,9 +1185,9 @@ public class CraftEventFactory {
+@@ -1190,9 +1192,9 @@ public class CraftEventFactory {
      private static EntityDamageEvent callEntityDamageEvent(Entity damager, Entity damagee, DamageCause cause, org.bukkit.damage.DamageSource bukkitDamageSource, Map<DamageModifier, Double> modifiers, Map<DamageModifier, Function<? super Double, Double>> modifierFunctions, boolean cancelled, boolean critical) { // Paper - add critical damage API
          EntityDamageEvent event;
          if (damager != null) {
