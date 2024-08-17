@@ -871,7 +871,7 @@ index cb61462d4691a055a4b25f7b953609d8a154fdfe..73ccb55889de521c65c76c7e15bbd6d1
          float f = this.spawnDimensionsScale * this.getWidth() / 2.0F;
          float f1 = this.spawnDimensionsScale * this.getHeight();
 diff --git a/src/main/java/net/minecraft/world/entity/LivingEntity.java b/src/main/java/net/minecraft/world/entity/LivingEntity.java
-index ccd9dff20a60f019e0c320acfb526b8bf3e5f806..754ee245ac51046d7b31d1e26b7d542d979e5974 100644
+index ccd9dff20a60f019e0c320acfb526b8bf3e5f806..76922d68702b6299fb2006dfd896d17faea1b05c 100644
 --- a/src/main/java/net/minecraft/world/entity/LivingEntity.java
 +++ b/src/main/java/net/minecraft/world/entity/LivingEntity.java
 @@ -11,6 +11,9 @@ import com.mojang.datafixers.util.Pair;
@@ -926,13 +926,21 @@ index ccd9dff20a60f019e0c320acfb526b8bf3e5f806..754ee245ac51046d7b31d1e26b7d542d
  
      protected LivingEntity(EntityType<? extends LivingEntity> type, Level world) {
          super(type, world);
-@@ -361,7 +361,50 @@ public abstract class LivingEntity extends Entity implements Attackable {
+@@ -314,6 +314,7 @@ public abstract class LivingEntity extends Entity implements Attackable {
+         this.activeLocationDependentEnchantments = new Reference2ObjectArrayMap();
+         this.appliedScale = 1.0F;
+         this.attributes = new AttributeMap(DefaultAttributes.getSupplier(type));
++        attributes.registerAttribute(Attributes.FOLLOW_RANGE); // Papyrus - For custom mobs, PathNav otherwise fails
+         this.craftAttributes = new CraftAttributeMap(this.attributes); // CraftBukkit
+         // CraftBukkit - setHealth(getMaxHealth()) inlined and simplified to skip the instanceof check for EntityPlayer, as getBukkitEntity() is not initialized in constructor
+         this.entityData.set(LivingEntity.DATA_HEALTH_ID, (float) this.getAttribute(Attributes.MAX_HEALTH).getValue());
+@@ -361,7 +362,51 @@ public abstract class LivingEntity extends Entity implements Attackable {
      }
  
      public static AttributeSupplier.Builder createLivingAttributes() {
 -        return AttributeSupplier.builder().add(Attributes.MAX_HEALTH).add(Attributes.KNOCKBACK_RESISTANCE).add(Attributes.MOVEMENT_SPEED).add(Attributes.ARMOR).add(Attributes.ARMOR_TOUGHNESS).add(Attributes.MAX_ABSORPTION).add(Attributes.STEP_HEIGHT).add(Attributes.SCALE).add(Attributes.GRAVITY).add(Attributes.SAFE_FALL_DISTANCE).add(Attributes.FALL_DAMAGE_MULTIPLIER).add(Attributes.JUMP_STRENGTH).add(Attributes.OXYGEN_BONUS).add(Attributes.BURNING_TIME).add(Attributes.EXPLOSION_KNOCKBACK_RESISTANCE).add(Attributes.WATER_MOVEMENT_EFFICIENCY).add(Attributes.MOVEMENT_EFFICIENCY).add(Attributes.ATTACK_KNOCKBACK);
 +        return AttributeSupplier.builder()
-+            .add(Attributes.MAX_HEALTH)
++        .add(Attributes.MAX_HEALTH)
 +        .add(Attributes.KNOCKBACK_RESISTANCE)
 +        .add(Attributes.MOVEMENT_SPEED)
 +        .add(Attributes.ARMOR)
@@ -950,6 +958,7 @@ index ccd9dff20a60f019e0c320acfb526b8bf3e5f806..754ee245ac51046d7b31d1e26b7d542d
 +        .add(Attributes.WATER_MOVEMENT_EFFICIENCY)
 +        .add(Attributes.MOVEMENT_EFFICIENCY)
 +        .add(Attributes.ATTACK_KNOCKBACK)
++        .add(Attributes.FOLLOW_RANGE) // Papyrus - For custom mobs
 +        .add(Attributes.ADV_AIR)
 +        .add(Attributes.ADV_EARTH)
 +        .add(Attributes.ADV_FIRE)
@@ -978,7 +987,7 @@ index ccd9dff20a60f019e0c320acfb526b8bf3e5f806..754ee245ac51046d7b31d1e26b7d542d
      }
  
      @Override
-@@ -540,6 +583,7 @@ public abstract class LivingEntity extends Entity implements Attackable {
+@@ -540,6 +585,7 @@ public abstract class LivingEntity extends Entity implements Attackable {
          }
  
          this.tickEffects();
@@ -986,7 +995,7 @@ index ccd9dff20a60f019e0c320acfb526b8bf3e5f806..754ee245ac51046d7b31d1e26b7d542d
          this.animStepO = this.animStep;
          this.yBodyRotO = this.yBodyRot;
          this.yHeadRotO = this.yHeadRot;
-@@ -1409,8 +1453,95 @@ public abstract class LivingEntity extends Entity implements Attackable {
+@@ -1409,8 +1455,95 @@ public abstract class LivingEntity extends Entity implements Attackable {
          return this.getHealth() <= 0.0F;
      }
  
@@ -1082,7 +1091,7 @@ index ccd9dff20a60f019e0c320acfb526b8bf3e5f806..754ee245ac51046d7b31d1e26b7d542d
          if (this.isInvulnerableTo(source)) {
              return false;
          } else if (this.level().isClientSide) {
-@@ -1617,7 +1748,7 @@ public abstract class LivingEntity extends Entity implements Attackable {
+@@ -1617,7 +1750,7 @@ public abstract class LivingEntity extends Entity implements Attackable {
  
              return flag2;
          }
@@ -1091,7 +1100,7 @@ index ccd9dff20a60f019e0c320acfb526b8bf3e5f806..754ee245ac51046d7b31d1e26b7d542d
  
      // Paper start - only call damage event when actuallyHurt will be called - move out amount computation logic
      private float computeAmountFromEntityDamageEvent(final EntityDamageEvent event) {
-@@ -3123,6 +3254,10 @@ public abstract class LivingEntity extends Entity implements Attackable {
+@@ -3123,6 +3256,10 @@ public abstract class LivingEntity extends Entity implements Attackable {
      }
  
      public boolean doHurtTarget(Entity target) {
