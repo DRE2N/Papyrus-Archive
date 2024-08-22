@@ -2006,7 +2006,7 @@ index 0000000000000000000000000000000000000000..8b72dba1a152833a89730155ff166328
 +    }
 +}
 diff --git a/src/main/java/org/bukkit/Server.java b/src/main/java/org/bukkit/Server.java
-index c043d239c449bf4bb13a24467f2f6c67b4d28d2d..cc63d331028f6d1218d778e8d43e7bcf6e358b32 100644
+index 5aa64ea39ebd92e5067c53cea49a8685c0b9eee4..389a9c0196d5588f2f3174ef1e373916cc89b765 100644
 --- a/src/main/java/org/bukkit/Server.java
 +++ b/src/main/java/org/bukkit/Server.java
 @@ -14,6 +14,7 @@ import java.util.Set;
@@ -2017,7 +2017,7 @@ index c043d239c449bf4bb13a24467f2f6c67b4d28d2d..cc63d331028f6d1218d778e8d43e7bcf
  import org.bukkit.Warning.WarningState;
  import org.bukkit.advancement.Advancement;
  import org.bukkit.block.data.BlockData;
-@@ -2543,4 +2544,8 @@ public interface Server extends PluginMessageRecipient, net.kyori.adventure.audi
+@@ -2554,4 +2555,8 @@ public interface Server extends PluginMessageRecipient, net.kyori.adventure.audi
       */
      boolean isOwnedByCurrentRegion(@NotNull Entity entity);
      // Paper end - Folia region threading API
@@ -2086,7 +2086,7 @@ index f89edd9c129802f70eac022ff6bf80bef378f5e8..a81d5720f19f15dcffdf346f5f8d4e23
       * Deals the given amount of damage to this entity from a specified
       * {@link DamageSource}.
 diff --git a/src/main/java/org/bukkit/entity/LivingEntity.java b/src/main/java/org/bukkit/entity/LivingEntity.java
-index a1e54e9d14393a6c0ea57cca854071c5396d9717..fbd899a09f9b05fb13fedc2a73a5c7025fa04b3c 100644
+index fcdc5fce88720cc926a3953d80b5045113d1516c..b9ed36dc7dc67b9d045190ffb592fdbd87acbc52 100644
 --- a/src/main/java/org/bukkit/entity/LivingEntity.java
 +++ b/src/main/java/org/bukkit/entity/LivingEntity.java
 @@ -4,6 +4,9 @@ import java.util.Collection;
