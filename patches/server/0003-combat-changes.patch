@@ -63,7 +63,7 @@ index 0000000000000000000000000000000000000000..afe4ed93f622cc46c0bb1faa12976e44
 +    }
 +}
 diff --git a/src/main/java/net/minecraft/server/level/ServerPlayer.java b/src/main/java/net/minecraft/server/level/ServerPlayer.java
-index 90afafbde4b27087ca8268fc6aebaf85cae25ccd..83e5c7c8ce1911d64bc51ab6a2ad72cbcb01ccda 100644
+index 5203e3b0b2016a428c179a2a124ef4348d9705be..50bc4a2d4ee8fb045d69631cf1ea2f49c153d171 100644
 --- a/src/main/java/net/minecraft/server/level/ServerPlayer.java
 +++ b/src/main/java/net/minecraft/server/level/ServerPlayer.java
 @@ -6,6 +6,7 @@ import com.mojang.datafixers.util.Either;
@@ -74,7 +74,7 @@ index 90afafbde4b27087ca8268fc6aebaf85cae25ccd..83e5c7c8ce1911d64bc51ab6a2ad72cb
  import io.papermc.paper.adventure.PaperAdventure;
  import net.minecraft.*;
  import net.minecraft.advancements.CriteriaTriggers;
-@@ -2349,7 +2350,7 @@ public class ServerPlayer extends net.minecraft.world.entity.player.Player imple
+@@ -2348,7 +2349,7 @@ public class ServerPlayer extends net.minecraft.world.entity.player.Player imple
          if (this.gameMode.getGameModeForPlayer() == GameType.SPECTATOR) {
              this.setCamera(target);
          } else {
@@ -84,7 +84,7 @@ index 90afafbde4b27087ca8268fc6aebaf85cae25ccd..83e5c7c8ce1911d64bc51ab6a2ad72cb
  
      }
 diff --git a/src/main/java/net/minecraft/server/network/ServerGamePacketListenerImpl.java b/src/main/java/net/minecraft/server/network/ServerGamePacketListenerImpl.java
-index 60ff21c8df4168f14da04a12073bde47cd4693c4..0529aae7132224a50787486890c40b84237aa5e5 100644
+index b13057c0792067cc6b0abdf0d64a9be2cc9389a4..f5992b6f9fbd0c442de9cf89dec4ebcbb1645c45 100644
 --- a/src/main/java/net/minecraft/server/network/ServerGamePacketListenerImpl.java
 +++ b/src/main/java/net/minecraft/server/network/ServerGamePacketListenerImpl.java
 @@ -314,6 +314,7 @@ public class ServerGamePacketListenerImpl extends ServerCommonPacketListenerImpl
