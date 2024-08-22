@@ -756,7 +756,7 @@ index bb1a60180e58c1333e7bb33e8acf1b0225eda8a8..9fbe8516c6b55da958c106e67b4c41d8
  
      public DamageSource(Holder<DamageType> type, @Nullable Entity source, @Nullable Entity attacker) {
 diff --git a/src/main/java/net/minecraft/world/entity/Entity.java b/src/main/java/net/minecraft/world/entity/Entity.java
-index 69841a165aa9d11b7940973b0e9321dbf6b71880..dbcdd0e68fe7bcbe42b04203a9c803a98d4da3b1 100644
+index 69841a165aa9d11b7940973b0e9321dbf6b71880..af848c4deaad2e2b79860326001268cb3ade1d00 100644
 --- a/src/main/java/net/minecraft/world/entity/Entity.java
 +++ b/src/main/java/net/minecraft/world/entity/Entity.java
 @@ -6,11 +6,12 @@ import com.google.common.collect.Lists;
@@ -797,6 +797,14 @@ index 69841a165aa9d11b7940973b0e9321dbf6b71880..dbcdd0e68fe7bcbe42b04203a9c803a9
 +            return true;
          }
      }
+ 
+@@ -3758,6 +3762,7 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
+                 );
+                 event.callEvent();
+                 if (this.isRemoved()) {
++                    LOGGER.warn("Illegal Entity Teleport " + this + " to " + to + " (removed)"); // Papyrus - debugging
+                     return null;
+                 }
  
 diff --git a/src/main/java/net/minecraft/world/entity/EntityType.java b/src/main/java/net/minecraft/world/entity/EntityType.java
 index cb61462d4691a055a4b25f7b953609d8a154fdfe..73ccb55889de521c65c76c7e15bbd6d112665e3a 100644
@@ -2114,6 +2122,40 @@ index 33ae03b78b01c005a291a343b42507fb539e81a6..e0b798cebcfbd70ef3692de1ec1fdb4f
      @Override
      public double getHealth() {
          return this.getParent().getHealth();
+diff --git a/src/main/java/org/bukkit/craftbukkit/entity/CraftEntity.java b/src/main/java/org/bukkit/craftbukkit/entity/CraftEntity.java
+index cd789c235acf740ec29c30b180e7fbe1a140caa9..d97eef8c36944979e1c97ff9a95d25d41535febd 100644
+--- a/src/main/java/org/bukkit/craftbukkit/entity/CraftEntity.java
++++ b/src/main/java/org/bukkit/craftbukkit/entity/CraftEntity.java
+@@ -8,6 +8,8 @@ import com.google.common.collect.Lists;
+ import java.util.List;
+ import java.util.Set;
+ import java.util.UUID;
++import java.util.logging.Level;
++
+ import net.minecraft.nbt.CompoundTag;
+ import net.minecraft.nbt.Tag;
+ import net.minecraft.network.chat.Component;
+@@ -22,11 +24,7 @@ import net.minecraft.world.entity.projectile.AbstractArrow;
+ import net.minecraft.world.level.portal.DimensionTransition;
+ import net.minecraft.world.phys.AABB;
+ import net.minecraft.world.phys.Vec3;
+-import org.bukkit.EntityEffect;
+-import org.bukkit.Location;
+-import org.bukkit.Server;
+-import org.bukkit.Sound;
+-import org.bukkit.World;
++import org.bukkit.*;
+ import org.bukkit.block.BlockFace;
+ import org.bukkit.block.PistonMoveReaction;
+ import org.bukkit.craftbukkit.CraftServer;
+@@ -255,6 +253,7 @@ public abstract class CraftEntity implements org.bukkit.entity.Entity {
+         // Paper end
+ 
+         if ((!ignorePassengers && this.entity.isVehicle()) || this.entity.isRemoved()) { // Paper - Teleport passenger API
++            Bukkit.getLogger().log(Level.WARNING, "Entity " + this + " cannot be teleported because it is either a vehicle or is removed"); // Papyrus - debugging
+             return false;
+         }
+ 
 diff --git a/src/main/java/org/bukkit/craftbukkit/entity/CraftLivingEntity.java b/src/main/java/org/bukkit/craftbukkit/entity/CraftLivingEntity.java
 index beb6ad312028adb14053e3f019a4fcf6c9149373..b0b5805044adabebea00bb486b373b0a2df99f69 100644
 --- a/src/main/java/org/bukkit/craftbukkit/entity/CraftLivingEntity.java
