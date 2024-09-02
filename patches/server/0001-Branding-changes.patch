@@ -5,7 +5,7 @@ Subject: [PATCH] Branding changes
 
 
 diff --git a/build.gradle.kts b/build.gradle.kts
-index 421f6b3dc8890d63d2e7aa774d0bf8f7e15890ab..4a4bc32b134c4eb005e4f1cbc1a21bf1ff6dab1c 100644
+index 421f6b3dc8890d63d2e7aa774d0bf8f7e15890ab..f687ca4a694468b18bbff5cb5fbd8e9608d24af2 100644
 --- a/build.gradle.kts
 +++ b/build.gradle.kts
 @@ -13,7 +13,7 @@ configurations.named(log4jPlugins.compileClasspathConfigurationName) {
@@ -17,12 +17,9 @@ index 421f6b3dc8890d63d2e7aa774d0bf8f7e15890ab..4a4bc32b134c4eb005e4f1cbc1a21bf1
      // Paper start
      implementation("org.jline:jline-terminal-jansi:3.21.0")
      implementation("net.minecrell:terminalconsoleappender:1.3.0")
-@@ -76,24 +76,18 @@ tasks.jar {
- 
-     manifest {
-         val git = Git(rootProject.layout.projectDirectory.path)
--        val mcVersion = rootProject.providers.gradleProperty("mcVersion").get()
--        val build = System.getenv("BUILD_NUMBER") ?: null
+@@ -79,21 +79,21 @@ tasks.jar {
+         val mcVersion = rootProject.providers.gradleProperty("mcVersion").get()
+         val build = System.getenv("BUILD_NUMBER") ?: null
          val gitHash = git("rev-parse", "--short=7", "HEAD").getText().trim()
 -        val implementationVersion = "$mcVersion-${build ?: "DEV"}-$gitHash"
 +        val implementationVersion = System.getenv("BUILD_NUMBER") ?: "\"$gitHash\""
@@ -31,9 +28,8 @@ index 421f6b3dc8890d63d2e7aa774d0bf8f7e15890ab..4a4bc32b134c4eb005e4f1cbc1a21bf1
          attributes(
              "Main-Class" to "org.bukkit.craftbukkit.Main",
 -            "Implementation-Title" to "Paper",
--            "Implementation-Version" to implementationVersion,
-+            "Implementation-Title" to "CraftBukkit",
-+            "Implementation-Version" to "git-Paper-$implementationVersion",
++            "Implementation-Title" to "Papyrus",
+             "Implementation-Version" to implementationVersion,
              "Implementation-Vendor" to date, // Paper
 -            "Specification-Title" to "Paper",
 +            "Specification-Title" to "Bukkit",
@@ -41,9 +37,11 @@ index 421f6b3dc8890d63d2e7aa774d0bf8f7e15890ab..4a4bc32b134c4eb005e4f1cbc1a21bf1
 -            "Specification-Vendor" to "Paper Team",
 -            "Brand-Id" to "papermc:paper",
 -            "Brand-Name" to "Paper",
--            "Build-Number" to (build ?: ""),
--            "Build-Time" to Instant.now().toString(),
-+            "Specification-Vendor" to "Erethon",
++            "Brand-Id" to "erethon:papyrus", // Papyrus
++            "Brand-Name" to "Papyrus", // Papyrus
+             "Build-Number" to (build ?: ""),
+             "Build-Time" to Instant.now().toString(),
++            "Specification-Vendor" to "Erethon", // Papyrus
              "Git-Branch" to gitBranch, // Paper
              "Git-Commit" to gitHash, // Paper
              "CraftBukkit-Package-Version" to paperweight.craftBukkitPackageVersion.get(), // Paper
@@ -62,7 +60,7 @@ index 23ddd26af762c1cd7fb3920669abb96b3213ab37..496c6f0b18bfe5093cea9501c80d1fe5
  
      public SystemReport fillSystemReport(SystemReport details) {
 diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-index f6de1c6e8fd9086b7bd725f75ee2606583591d6a..90b80d5df7b31914c21acf36070afa60fbb8e96a 100644
+index 1b36e94617d4e777c419660936460d5cf8a4b3e8..b50175ef8e71b4075edc0e2b45b55db73dd05e9f 100644
 --- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 +++ b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 @@ -266,7 +266,8 @@ import javax.annotation.Nullable; // Paper
