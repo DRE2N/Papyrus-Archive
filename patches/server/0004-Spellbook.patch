@@ -422,6 +422,22 @@ index 0000000000000000000000000000000000000000..7d90eab2af9b1714b18be16bc65d78c5
 +        return handlers;
 +    }
 +}
+diff --git a/src/main/java/io/papermc/paper/adventure/BossBarImplementationImpl.java b/src/main/java/io/papermc/paper/adventure/BossBarImplementationImpl.java
+index 23bd6d2d8fed5a3491e856f8b875456dd29f8aaf..62f2da32b7954510661adfd6bd02d4337b24f2c8 100644
+--- a/src/main/java/io/papermc/paper/adventure/BossBarImplementationImpl.java
++++ b/src/main/java/io/papermc/paper/adventure/BossBarImplementationImpl.java
+@@ -25,6 +25,11 @@ public final class BossBarImplementationImpl implements BossBar.Listener, BossBa
+     }
+ 
+     public void playerShow(final CraftPlayer player) {
++        // Papyrus start - Don't try to show boss bars for NPCs
++        if (!player.getHandle().isRealPlayer) {
++            return;
++        }
++        // Papyrus end
+         if (this.vanilla == null) {
+             this.vanilla = new ServerBossEvent(
+                 PaperAdventure.asVanilla(this.bar.name()),
 diff --git a/src/main/java/net/minecraft/network/Connection.java b/src/main/java/net/minecraft/network/Connection.java
 index a5f9f2542af86ce95fb31887260fd88fc5f84fb2..3c2d75e07e949367cf33ace7178504e79b856552 100644
 --- a/src/main/java/net/minecraft/network/Connection.java
