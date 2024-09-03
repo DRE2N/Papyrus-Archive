@@ -1791,6 +1791,27 @@ index 2bb86c2d0c6b46e73a1ea191bb2be4586a85829b..3193a980131b4c241fbc1434abceec5e
  import java.util.Collection;
  import javax.annotation.Nullable;
  import net.minecraft.Util;
+diff --git a/src/main/java/net/minecraft/world/item/ItemStack.java b/src/main/java/net/minecraft/world/item/ItemStack.java
+index b6a2f3e4f22f36e75a1630bd456c2f471edbb398..f7368367486984b4b09c5ff4b1d790360098c560 100644
+--- a/src/main/java/net/minecraft/world/item/ItemStack.java
++++ b/src/main/java/net/minecraft/world/item/ItemStack.java
+@@ -185,12 +185,12 @@ public final class ItemStack implements DataComponentHolder {
+                 ITEM_STREAM_CODEC.encode(registryfriendlybytebuf, itemstack.getItemHolder()); // CraftBukkit - decompile error
+                 // Paper start - adventure; conditionally render translatable components
+                 boolean prev = net.minecraft.network.chat.ComponentSerialization.DONT_RENDER_TRANSLATABLES.get();
+-                try {
+-                    net.minecraft.network.chat.ComponentSerialization.DONT_RENDER_TRANSLATABLES.set(true);
++                /*try { // Papyrus start - lets try this
++                    net.minecraft.network.chat.ComponentSerialization.DONT_RENDER_TRANSLATABLES.set(true);*/
+                 DataComponentPatch.STREAM_CODEC.encode(registryfriendlybytebuf, itemstack.components.asPatch());
+-                } finally {
++                /*} finally {
+                     net.minecraft.network.chat.ComponentSerialization.DONT_RENDER_TRANSLATABLES.set(prev);
+-                }
++                }*/ // Papyrus end
+                 // Paper end - adventure; conditionally render translatable components
+             }
+         }
 diff --git a/src/main/java/net/minecraft/world/level/NaturalSpawner.java b/src/main/java/net/minecraft/world/level/NaturalSpawner.java
 index e524b27d185da3e88668f8ef107517272860bd66..59c07925e773223943b866fc58d6695a41052605 100644
 --- a/src/main/java/net/minecraft/world/level/NaturalSpawner.java
