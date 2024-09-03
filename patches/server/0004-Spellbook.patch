@@ -537,6 +537,36 @@ index 792b9a72a610cc512a8920d61013b6ba02f71e47..22b0681fb428c5566c2bec5d7b2d8f2b
      }
  
      private void write(RegistryFriendlyByteBuf buf) {
+diff --git a/src/main/java/net/minecraft/network/protocol/game/ClientboundContainerSetContentPacket.java b/src/main/java/net/minecraft/network/protocol/game/ClientboundContainerSetContentPacket.java
+index 8cca2ac616a2c80268c96b9f95e33f834a0fc8fd..e5fd4d5d7a7a895d394ebbd4d145edd8e0d83e0c 100644
+--- a/src/main/java/net/minecraft/network/protocol/game/ClientboundContainerSetContentPacket.java
++++ b/src/main/java/net/minecraft/network/protocol/game/ClientboundContainerSetContentPacket.java
+@@ -54,8 +54,10 @@ public class ClientboundContainerSetContentPacket implements Packet<ClientGamePa
+     private void write(RegistryFriendlyByteBuf buf) {
+         buf.writeByte(this.containerId);
+         buf.writeVarInt(this.stateId);
+-        ItemStack.OPTIONAL_LIST_STREAM_CODEC.encode(buf, this.items);
+-        ItemStack.OPTIONAL_STREAM_CODEC.encode(buf, this.carriedItem);
++        // Papyrus start - Item translation
++        ItemStack.OPTIONAL_TRANSLATED_LIST_STREAM_CODEC.encode(buf, this.items);
++        ItemStack.OPTIONAL_TRANSLATED_STREAM_CODEC.encode(buf, this.carriedItem);
++        // Papyrus end
+     }
+ 
+     @Override
+diff --git a/src/main/java/net/minecraft/network/protocol/game/ClientboundSetEquipmentPacket.java b/src/main/java/net/minecraft/network/protocol/game/ClientboundSetEquipmentPacket.java
+index d152871142d3def2ac04f50037db53b0527f7894..d181273d3e09519467abe4e165cef3126f343e9b 100644
+--- a/src/main/java/net/minecraft/network/protocol/game/ClientboundSetEquipmentPacket.java
++++ b/src/main/java/net/minecraft/network/protocol/game/ClientboundSetEquipmentPacket.java
+@@ -55,7 +55,7 @@ public class ClientboundSetEquipmentPacket implements Packet<ClientGamePacketLis
+             boolean bl = j != i - 1;
+             int k = equipmentSlot.ordinal();
+             buf.writeByte(bl ? k | -128 : k);
+-            ItemStack.OPTIONAL_STREAM_CODEC.encode(buf, pair.getSecond());
++            ItemStack.OPTIONAL_TRANSLATED_STREAM_CODEC.encode(buf, pair.getSecond()); // Papyrus - Item translations
+         }
+         } // Paper - data sanitization
+     }
 diff --git a/src/main/java/net/minecraft/server/Bootstrap.java b/src/main/java/net/minecraft/server/Bootstrap.java
 index 8c2f9f549b5155b8d8fecbc22164b334805381e2..07378cc827d424127156d5b71c8381c62afb6700 100644
 --- a/src/main/java/net/minecraft/server/Bootstrap.java
@@ -1792,26 +1822,56 @@ index 2bb86c2d0c6b46e73a1ea191bb2be4586a85829b..3193a980131b4c241fbc1434abceec5e
  import javax.annotation.Nullable;
  import net.minecraft.Util;
 diff --git a/src/main/java/net/minecraft/world/item/ItemStack.java b/src/main/java/net/minecraft/world/item/ItemStack.java
-index b6a2f3e4f22f36e75a1630bd456c2f471edbb398..f7368367486984b4b09c5ff4b1d790360098c560 100644
+index b6a2f3e4f22f36e75a1630bd456c2f471edbb398..66f7de9d3e9b078438458260a08e91e11661a7f2 100644
 --- a/src/main/java/net/minecraft/world/item/ItemStack.java
 +++ b/src/main/java/net/minecraft/world/item/ItemStack.java
-@@ -185,12 +185,12 @@ public final class ItemStack implements DataComponentHolder {
-                 ITEM_STREAM_CODEC.encode(registryfriendlybytebuf, itemstack.getItemHolder()); // CraftBukkit - decompile error
-                 // Paper start - adventure; conditionally render translatable components
-                 boolean prev = net.minecraft.network.chat.ComponentSerialization.DONT_RENDER_TRANSLATABLES.get();
--                try {
--                    net.minecraft.network.chat.ComponentSerialization.DONT_RENDER_TRANSLATABLES.set(true);
-+                /*try { // Papyrus start - lets try this
-+                    net.minecraft.network.chat.ComponentSerialization.DONT_RENDER_TRANSLATABLES.set(true);*/
-                 DataComponentPatch.STREAM_CODEC.encode(registryfriendlybytebuf, itemstack.components.asPatch());
--                } finally {
-+                /*} finally {
-                     net.minecraft.network.chat.ComponentSerialization.DONT_RENDER_TRANSLATABLES.set(prev);
--                }
-+                }*/ // Papyrus end
-                 // Paper end - adventure; conditionally render translatable components
+@@ -195,6 +195,37 @@ public final class ItemStack implements DataComponentHolder {
              }
          }
+     };
++    // Papyrus start - Item translations. Just a copy of the above but without disabling the translator
++    public static final StreamCodec<RegistryFriendlyByteBuf, ItemStack> OPTIONAL_TRANSLATED_STREAM_CODEC = new StreamCodec<RegistryFriendlyByteBuf, ItemStack>() {
++        private static final StreamCodec<RegistryFriendlyByteBuf, Holder<Item>> ITEM_STREAM_CODEC = ByteBufCodecs.holderRegistry(Registries.ITEM);
++
++        public ItemStack decode(RegistryFriendlyByteBuf registryfriendlybytebuf) {
++            int i = registryfriendlybytebuf.readVarInt();
++
++            if (i <= 0) {
++                return ItemStack.EMPTY;
++            } else {
++                Holder<Item> holder = (Holder) ITEM_STREAM_CODEC.decode(registryfriendlybytebuf);
++                DataComponentPatch datacomponentpatch = (DataComponentPatch) DataComponentPatch.STREAM_CODEC.decode(registryfriendlybytebuf);
++                ItemStack itemstack = new ItemStack(holder, i, datacomponentpatch);
++                if (false && !datacomponentpatch.isEmpty()) {
++                    CraftItemStack.setItemMeta(itemstack, CraftItemStack.getItemMeta(itemstack));
++                }
++                return itemstack;
++            }
++        }
++
++        public void encode(RegistryFriendlyByteBuf registryfriendlybytebuf, ItemStack itemstack) {
++            if (itemstack.isEmpty() || itemstack.getItem() == null) { // CraftBukkit - NPE fix itemstack.getItem()
++                registryfriendlybytebuf.writeVarInt(0);
++            } else {
++                registryfriendlybytebuf.writeVarInt(itemstack.getCount());
++                ITEM_STREAM_CODEC.encode(registryfriendlybytebuf, itemstack.getItemHolder()); // CraftBukkit - decompile error
++                DataComponentPatch.STREAM_CODEC.encode(registryfriendlybytebuf, itemstack.components.asPatch());
++            }
++        }
++    };
++    // Papyrus end
+     public static final StreamCodec<RegistryFriendlyByteBuf, ItemStack> STREAM_CODEC = new StreamCodec<RegistryFriendlyByteBuf, ItemStack>() {
+         public ItemStack decode(RegistryFriendlyByteBuf registryfriendlybytebuf) {
+             ItemStack itemstack = (ItemStack) ItemStack.OPTIONAL_STREAM_CODEC.decode(registryfriendlybytebuf);
+@@ -216,6 +247,8 @@ public final class ItemStack implements DataComponentHolder {
+     };
+     public static final StreamCodec<RegistryFriendlyByteBuf, List<ItemStack>> OPTIONAL_LIST_STREAM_CODEC = ItemStack.OPTIONAL_STREAM_CODEC.apply(ByteBufCodecs.collection(NonNullList::createWithCapacity));
+     public static final StreamCodec<RegistryFriendlyByteBuf, List<ItemStack>> LIST_STREAM_CODEC = ItemStack.STREAM_CODEC.apply(ByteBufCodecs.collection(NonNullList::createWithCapacity));
++    // Papyrus start - Item translations
++    public static final StreamCodec<RegistryFriendlyByteBuf, List<ItemStack>> OPTIONAL_TRANSLATED_LIST_STREAM_CODEC = ItemStack.OPTIONAL_TRANSLATED_STREAM_CODEC.apply(ByteBufCodecs.collection(NonNullList::createWithCapacity));
+     private static final Logger LOGGER = LogUtils.getLogger();
+     public static final ItemStack EMPTY = new ItemStack((Void) null);
+     private static final Component DISABLED_ITEM_TOOLTIP = Component.translatable("item.disabled").withStyle(ChatFormatting.RED);
 diff --git a/src/main/java/net/minecraft/world/level/NaturalSpawner.java b/src/main/java/net/minecraft/world/level/NaturalSpawner.java
 index e524b27d185da3e88668f8ef107517272860bd66..59c07925e773223943b866fc58d6695a41052605 100644
 --- a/src/main/java/net/minecraft/world/level/NaturalSpawner.java
