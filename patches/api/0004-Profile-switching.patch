@@ -337,7 +337,7 @@ index 00e3dc889b0c4978fa20a76f233ede7bea34f878..2b28cf882250df1836b5b5b9c8a0a9f9
      }
  
 diff --git a/src/main/java/de/erethon/spellbook/api/SpellTrait.java b/src/main/java/de/erethon/spellbook/api/SpellTrait.java
-index 96ec2b714f8e9f8c69f26811ee2878d20dfee5b6..06ab5ddb1fd14430235ea2897d846fb876c43c0e 100644
+index 96ec2b714f8e9f8c69f26811ee2878d20dfee5b6..25277b067c079a52b146a7ea0a3a8816f253c7ef 100644
 --- a/src/main/java/de/erethon/spellbook/api/SpellTrait.java
 +++ b/src/main/java/de/erethon/spellbook/api/SpellTrait.java
 @@ -1,8 +1,11 @@
@@ -378,7 +378,7 @@ index 96ec2b714f8e9f8c69f26811ee2878d20dfee5b6..06ab5ddb1fd14430235ea2897d846fb8
 +    /**
 +     * Returns a list of description placeholders for this trait.
 +     */
-+    public static List<Component> getPlaceholders(SpellCaster caster) {
++    public List<Component> getPlaceholders(SpellCaster caster) {
 +        return new ArrayList<>();
 +    }
 +
@@ -386,7 +386,7 @@ index 96ec2b714f8e9f8c69f26811ee2878d20dfee5b6..06ab5ddb1fd14430235ea2897d846fb8
  
  }
 diff --git a/src/main/java/de/erethon/spellbook/api/SpellbookSpell.java b/src/main/java/de/erethon/spellbook/api/SpellbookSpell.java
-index c4a07139e108bbd54e33d499bb883b6ec6eb8baa..7b82458b676be27c456e1af1f3cb994575552bba 100644
+index c4a07139e108bbd54e33d499bb883b6ec6eb8baa..5c6eda7dc1172e8d00c4bac9969b01af508e0fb9 100644
 --- a/src/main/java/de/erethon/spellbook/api/SpellbookSpell.java
 +++ b/src/main/java/de/erethon/spellbook/api/SpellbookSpell.java
 @@ -1,10 +1,12 @@
@@ -480,7 +480,7 @@ index c4a07139e108bbd54e33d499bb883b6ec6eb8baa..7b82458b676be27c456e1af1f3cb9945
 +    /**
 +     * Returns a list of description placeholders for this spell.
 +     */
-+    public static List<Component> getPlaceholders(SpellCaster caster) {
++    public List<Component> getPlaceholders(SpellCaster caster) {
 +        return new ArrayList<>();
 +    }
 +
