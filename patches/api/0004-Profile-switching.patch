@@ -230,10 +230,10 @@ index 0000000000000000000000000000000000000000..ff0571c54408568ef66cc149e10a9daa
 +    }
 +}
 diff --git a/src/main/java/de/erethon/spellbook/api/SpellData.java b/src/main/java/de/erethon/spellbook/api/SpellData.java
-index 1f8dd5a590298a7b0bbb2b47354163eb671cec37..23ca423cc45eb9586b0a25a0a976f4cc8b2b85c2 100644
+index 1f8dd5a590298a7b0bbb2b47354163eb671cec37..c73846a2df867431b15e9bbe27086585d2ade8a9 100644
 --- a/src/main/java/de/erethon/spellbook/api/SpellData.java
 +++ b/src/main/java/de/erethon/spellbook/api/SpellData.java
-@@ -10,8 +10,7 @@ import org.jetbrains.annotations.NotNull;
+@@ -10,18 +10,15 @@ import org.jetbrains.annotations.NotNull;
  import java.io.File;
  import java.io.IOException;
  import java.lang.reflect.InvocationTargetException;
@@ -243,61 +243,71 @@ index 1f8dd5a590298a7b0bbb2b47354163eb671cec37..23ca423cc45eb9586b0a25a0a976f4cc
  
  public class SpellData extends YamlConfiguration {
  
-@@ -20,8 +19,8 @@ public class SpellData extends YamlConfiguration {
+     SpellbookAPI spellbookAPI;
+-    MiniMessage miniMessage = MiniMessage.miniMessage();
      SpellQueue queue;
      private int cooldown;
      private final String id;
 -    private Component name;
 -    private final List<String> description = new ArrayList<>();
-+    private final Map<Locale, Component> name = new HashMap<>();
-+    private final Map<Locale, List<String>> description = new HashMap<>();
++    private int descriptionLineCount = 0;
  
      private Class<? extends SpellbookSpell> spellClass;
      private final ClassLoader classLoader;
-@@ -72,24 +71,24 @@ public class SpellData extends YamlConfiguration {
+@@ -71,32 +68,6 @@ public class SpellData extends YamlConfiguration {
+         return id;
      }
  
-     @NotNull
+-    @NotNull
 -    public Component getDisplayName() {
 -        return name;
-+    public Component getDisplayName(Locale locale) {
-+        return name.get(locale);
-     }
- 
+-    }
+-
 -    public List<Component> getDescription() {
-+    public List<Component> getDescription(Locale locale) {
-         List<Component> components = new ArrayList<>();
+-        List<Component> components = new ArrayList<>();
 -        for (String entry : description) {
-+        for (String entry : description.get(locale)) {
-             components.add(miniMessage.deserialize(entry));
-         }
-         return components;
+-            components.add(miniMessage.deserialize(entry));
+-        }
+-        return components;
+-    }
+-
+-    public List<Component> getDescription(String[] placeholders, String[] replacements) {
+-        if (replacements.length < placeholders.length) {
+-            throw new RuntimeException("Invalid amount of replacements for provided placeholders");
+-        }
+-        List<Component> components = new ArrayList<>();
+-        for (String entry : description) {
+-            for (int i = 0; i < placeholders.length; i++) {
+-                components.add(miniMessage.deserialize(entry.replaceAll(placeholders[i], replacements[i])));
+-            }
+-        }
+-        return components;
+-    }
+-
+     public int getCooldown() {
+         return cooldown;
+     }
+@@ -105,6 +76,14 @@ public class SpellData extends YamlConfiguration {
+         return spellbookAPI;
      }
  
--    public List<Component> getDescription(String[] placeholders, String[] replacements) {
-+    public List<Component> getDescription(Locale locale, String[] placeholders, String[] replacements) {
-         if (replacements.length < placeholders.length) {
-             throw new RuntimeException("Invalid amount of replacements for provided placeholders");
-         }
-         List<Component> components = new ArrayList<>();
--        for (String entry : description) {
-+        for (String entry : description.get(locale)) {
-             for (int i = 0; i < placeholders.length; i++) {
-                 components.add(miniMessage.deserialize(entry.replaceAll(placeholders[i], replacements[i])));
-             }
-@@ -121,7 +120,12 @@ public class SpellData extends YamlConfiguration {
++    public void setDescriptionLineCount(int descriptionLineCount) {
++        this.descriptionLineCount = descriptionLineCount;
++    }
++
++    public int getDescriptionLineCount() {
++        return descriptionLineCount;
++    }
++
+     @Override
+     public void save(@NotNull File file) throws IOException {
+         super.save(file);
+@@ -121,7 +100,5 @@ public class SpellData extends YamlConfiguration {
              throw new RuntimeException(e);
          }
          cooldown = getInt("cooldown", 0);
 -        name = miniMessage.deserialize(getString("name", "<color:#ff0000>[Invalid name]"));
 -        description.addAll(getStringList("description"));
-+        for (String locale : getConfigurationSection("name").getKeys(false)) {
-+            name.put(Locale.of(locale), miniMessage.deserialize(getString("name." + locale, "<color:#ff0000>[Invalid name]")));
-+        }
-+        for (String locale : getConfigurationSection("description").getKeys(false)) {
-+            List<String> entries = getStringList("description." + locale);
-+            description.put(Locale.of(locale), entries);
-+        }
      }
  }
 diff --git a/src/main/java/de/erethon/spellbook/api/SpellEffect.java b/src/main/java/de/erethon/spellbook/api/SpellEffect.java
@@ -327,18 +337,23 @@ index 00e3dc889b0c4978fa20a76f233ede7bea34f878..2b28cf882250df1836b5b5b9c8a0a9f9
      }
  
 diff --git a/src/main/java/de/erethon/spellbook/api/SpellTrait.java b/src/main/java/de/erethon/spellbook/api/SpellTrait.java
-index 96ec2b714f8e9f8c69f26811ee2878d20dfee5b6..828b24e26444f98b423d79a4f2775ea02348f609 100644
+index 96ec2b714f8e9f8c69f26811ee2878d20dfee5b6..06ab5ddb1fd14430235ea2897d846fb876c43c0e 100644
 --- a/src/main/java/de/erethon/spellbook/api/SpellTrait.java
 +++ b/src/main/java/de/erethon/spellbook/api/SpellTrait.java
-@@ -1,6 +1,6 @@
+@@ -1,8 +1,11 @@
  package de.erethon.spellbook.api;
  
 -import de.erethon.papyrus.DamageType;
 +import de.erethon.papyrus.PDamageType;
++import net.kyori.adventure.text.Component;
  import org.bukkit.entity.LivingEntity;
  
++import java.util.ArrayList;
++import java.util.List;
  import java.util.Set;
-@@ -81,7 +81,7 @@ public class SpellTrait {
+ 
+ /**
+@@ -81,7 +84,7 @@ public class SpellTrait {
       * This method is called when the caster takes damage.
       * @param attacker the attacker
       */
@@ -347,7 +362,7 @@ index 96ec2b714f8e9f8c69f26811ee2878d20dfee5b6..828b24e26444f98b423d79a4f2775ea0
          return damage;
      }
  
-@@ -89,7 +89,7 @@ public class SpellTrait {
+@@ -89,7 +92,7 @@ public class SpellTrait {
       * This method is called when the caster deals damage.
       * @param target the target the caster is attacking
       */
@@ -356,11 +371,25 @@ index 96ec2b714f8e9f8c69f26811ee2878d20dfee5b6..828b24e26444f98b423d79a4f2775ea0
          return damage;
      }
  
+@@ -185,5 +188,13 @@ public class SpellTrait {
+         caster.triggerTraits(trigger);
+     }
+ 
++    /**
++     * Returns a list of description placeholders for this trait.
++     */
++    public static List<Component> getPlaceholders(SpellCaster caster) {
++        return new ArrayList<>();
++    }
++
++
+ 
+ }
 diff --git a/src/main/java/de/erethon/spellbook/api/SpellbookSpell.java b/src/main/java/de/erethon/spellbook/api/SpellbookSpell.java
-index c4a07139e108bbd54e33d499bb883b6ec6eb8baa..e4ccda7c3ffdc025612c41a04c7c72af150d2173 100644
+index c4a07139e108bbd54e33d499bb883b6ec6eb8baa..7b82458b676be27c456e1af1f3cb994575552bba 100644
 --- a/src/main/java/de/erethon/spellbook/api/SpellbookSpell.java
 +++ b/src/main/java/de/erethon/spellbook/api/SpellbookSpell.java
-@@ -1,8 +1,11 @@
+@@ -1,10 +1,12 @@
  package de.erethon.spellbook.api;
  
 -import de.erethon.papyrus.DamageType;
@@ -369,11 +398,14 @@ index c4a07139e108bbd54e33d499bb883b6ec6eb8baa..e4ccda7c3ffdc025612c41a04c7c72af
 +import org.bukkit.Bukkit;
  import org.bukkit.entity.LivingEntity;
  
-+import java.util.Locale;
- import java.util.Set;
- import java.util.UUID;
+-import java.util.Set;
+-import java.util.UUID;
++import java.sql.Array;
++import java.util.*;
  
-@@ -16,12 +19,16 @@ public abstract class SpellbookSpell {
+ public abstract class SpellbookSpell {
+ 
+@@ -16,12 +18,16 @@ public abstract class SpellbookSpell {
  
      protected int keepAliveTicks = 0;
      protected int currentTicks = 0;
@@ -390,7 +422,7 @@ index c4a07139e108bbd54e33d499bb883b6ec6eb8baa..e4ccda7c3ffdc025612c41a04c7c72af
  
      public SpellbookSpell(LivingEntity caster, SpellData spellData) {
          this.data = spellData;
-@@ -67,6 +74,19 @@ public abstract class SpellbookSpell {
+@@ -67,6 +73,19 @@ public abstract class SpellbookSpell {
          cleanup();
      }
  
@@ -410,7 +442,7 @@ index c4a07139e108bbd54e33d499bb883b6ec6eb8baa..e4ccda7c3ffdc025612c41a04c7c72af
      /**
       * This method should be used for cleaning up after a Spell cast. For example spawned entities should be
       * removed here.
-@@ -78,7 +98,7 @@ public abstract class SpellbookSpell {
+@@ -78,7 +97,7 @@ public abstract class SpellbookSpell {
       * This method is called when the caster takes damage.
       * @param attacker the attacker
       */
@@ -419,7 +451,7 @@ index c4a07139e108bbd54e33d499bb883b6ec6eb8baa..e4ccda7c3ffdc025612c41a04c7c72af
          return damage;
      }
  
-@@ -86,7 +106,7 @@ public abstract class SpellbookSpell {
+@@ -86,7 +105,7 @@ public abstract class SpellbookSpell {
       * This method is called when the caster deals damage.
       * @param target the target the caster is attacking
       */
@@ -428,7 +460,7 @@ index c4a07139e108bbd54e33d499bb883b6ec6eb8baa..e4ccda7c3ffdc025612c41a04c7c72af
          return damage;
      }
  
-@@ -197,12 +217,27 @@ public abstract class SpellbookSpell {
+@@ -197,12 +216,25 @@ public abstract class SpellbookSpell {
  
      /**
       * Interrupts the spell. It will stop ticking, but cleanup() will still
@@ -446,18 +478,16 @@ index c4a07139e108bbd54e33d499bb883b6ec6eb8baa..e4ccda7c3ffdc025612c41a04c7c72af
      }
  
 +    /**
-+     * This is useful for placeholders that depend on specific conditions and attributes
-+     * @param id the ID
-+     * @return the value
++     * Returns a list of description placeholders for this spell.
 +     */
-+    public String getValueWithID(int id) {
-+        return "<none>";
++    public static List<Component> getPlaceholders(SpellCaster caster) {
++        return new ArrayList<>();
 +    }
 +
      /**
       * Immediately stops spell execution.
       * <b>Careful! No other Spell methods with be called afterwards.</b>
-@@ -235,6 +270,22 @@ public abstract class SpellbookSpell {
+@@ -235,6 +267,22 @@ public abstract class SpellbookSpell {
              cleanup();
              return;
          }
@@ -481,10 +511,10 @@ index c4a07139e108bbd54e33d499bb883b6ec6eb8baa..e4ccda7c3ffdc025612c41a04c7c72af
          if (currentTickInterval >= tickInterval) {
              currentTickInterval = 0;
 diff --git a/src/main/java/de/erethon/spellbook/api/TraitData.java b/src/main/java/de/erethon/spellbook/api/TraitData.java
-index 5c78b4f736ad271dcc512d1c85f83728d956dc00..c7bd36aeb18a33a444bbd3a67caa45f4fead356c 100644
+index 5c78b4f736ad271dcc512d1c85f83728d956dc00..06555d511e3280cef831e2ca6a7188b0f14207f0 100644
 --- a/src/main/java/de/erethon/spellbook/api/TraitData.java
 +++ b/src/main/java/de/erethon/spellbook/api/TraitData.java
-@@ -10,10 +10,7 @@ import org.jetbrains.annotations.NotNull;
+@@ -10,26 +10,21 @@ import org.jetbrains.annotations.NotNull;
  import java.io.File;
  import java.io.IOException;
  import java.lang.reflect.InvocationTargetException;
@@ -496,67 +526,86 @@ index 5c78b4f736ad271dcc512d1c85f83728d956dc00..c7bd36aeb18a33a444bbd3a67caa45f4
  
  public class TraitData extends YamlConfiguration {
  
-@@ -26,8 +23,8 @@ public class TraitData extends YamlConfiguration {
+     SpellbookAPI spellbookAPI;
+     SpellQueue queue;
+-    MiniMessage miniMessage = MiniMessage.miniMessage();
+ 
+     private final String id;
+ 
      private Class<? extends SpellTrait> traitClass;
      private final ClassLoader classLoader;
  
 -    private Component name;
 -    private final List<String> description = new ArrayList<>();
-+    private Map<Locale, Component> name = new HashMap<>();
-+    private final Map<Locale, List<String>> description = new HashMap<>();
      private final Set<SpellData> affectedSpells = new HashSet<>();
      private final Set<TraitData> affectedTraits = new HashSet<>();
++    private int descriptionLineCount = 0;
  
-@@ -50,17 +47,17 @@ public class TraitData extends YamlConfiguration {
+     public TraitData(SpellbookAPI spellbookAPI, String id, ClassLoader classLoader) {
+         this.spellbookAPI = spellbookAPI;
+@@ -49,41 +44,6 @@ public class TraitData extends YamlConfiguration {
+         return id;
      }
  
-     @NotNull
+-    @NotNull
 -    public Component getDisplayName() {
 -        return name;
-+    public Component getDisplayName(Locale locale) {
-+        return name.get(locale);
+-    }
+-
+-    /**
+-     * @return a List of Components
+-     * <b>Note: For most cases, the method with placeholders should be used.</b>
+-     */
+-    public List<Component> getDescription() {
+-        List<Component> components = new ArrayList<>();
+-        for (String entry : description) {
+-            components.add(miniMessage.deserialize(entry));
+-        }
+-        return components;
+-    }
+-
+-    /**
+-     * @param placeholders array of strings to be treated as placeholders
+-     * @param replacements array of strings to replace those placeholders
+-     * @return a List of Components with the placeholders replaced.
+-     */
+-    public List<Component> getDescription(String[] placeholders, String[] replacements) {
+-        if (replacements.length < placeholders.length) {
+-            throw new RuntimeException("Invalid amount of replacements for provided placeholders");
+-        }
+-        List<Component> components = new ArrayList<>();
+-        for (String entry : description) {
+-            for (int i = 0; i < placeholders.length; i++) {
+-                components.add(miniMessage.deserialize(entry.replaceAll(placeholders[i], replacements[i])));
+-            }
+-        }
+-        return components;
+-    }
+-
+     /**
+      * @return a Set of SpellbookSpells affected by this trait. <b>If the Set is empty, all Spells will be affected.</b>
+      */
+@@ -116,6 +76,14 @@ public class TraitData extends YamlConfiguration {
+         return spellTrait;
      }
  
-     /**
-      * @return a List of Components
-      * <b>Note: For most cases, the method with placeholders should be used.</b>
-      */
--    public List<Component> getDescription() {
-+    public List<Component> getDescription(Locale locale) {
-         List<Component> components = new ArrayList<>();
--        for (String entry : description) {
-+        for (String entry : description.get(locale)) {
-             components.add(miniMessage.deserialize(entry));
-         }
-         return components;
-@@ -71,12 +68,12 @@ public class TraitData extends YamlConfiguration {
-      * @param replacements array of strings to replace those placeholders
-      * @return a List of Components with the placeholders replaced.
-      */
--    public List<Component> getDescription(String[] placeholders, String[] replacements) {
-+    public List<Component> getDescription(Locale locale, String[] placeholders, String[] replacements) {
-         if (replacements.length < placeholders.length) {
-             throw new RuntimeException("Invalid amount of replacements for provided placeholders");
-         }
-         List<Component> components = new ArrayList<>();
--        for (String entry : description) {
-+        for (String entry : description.get(locale)) {
-             for (int i = 0; i < placeholders.length; i++) {
-                 components.add(miniMessage.deserialize(entry.replaceAll(placeholders[i], replacements[i])));
-             }
-@@ -126,8 +123,13 @@ public class TraitData extends YamlConfiguration {
++    public void setDescriptionLineCount(int descriptionLineCount) {
++        this.descriptionLineCount = descriptionLineCount;
++    }
++
++    public int getDescriptionLineCount() {
++        return descriptionLineCount;
++    }
++
+     @Override
+     public void load(@NotNull File file) throws IOException, InvalidConfigurationException {
+         super.load(file);
+@@ -126,8 +94,6 @@ public class TraitData extends YamlConfiguration {
              spellbookAPI.getServer().getLogger().warning("Could not find class for trait " + id + ": " + className);
              throw new RuntimeException(e1);
          }
 -        name = miniMessage.deserialize(getString("name", "<color:#ff0000>[Invalid name]"));
 -        description.addAll(getStringList("description"));
-+        for (String locale : getConfigurationSection("name").getKeys(false)) {
-+            name.put(Locale.of(locale), miniMessage.deserialize(getString("name." + locale, "<color:#ff0000>[Invalid name]")));
-+        }
-+        for (String locale : getConfigurationSection("description").getKeys(false)) {
-+            List<String> entries = getStringList("description." + locale);
-+            description.put(Locale.of(locale), entries);
-+        }
          List<String> affectedIDs = getStringList("affectedSpells");
          for (String id : affectedIDs) {
              SpellData data = spellbookAPI.getLibrary().getSpellByID(id);
