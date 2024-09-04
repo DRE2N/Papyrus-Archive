@@ -74,6 +74,33 @@ index 0000000000000000000000000000000000000000..1f20fd2c6128cd58ec160e95ca59d276
 +    }
 +
 +}
+diff --git a/src/main/java/de/erethon/spellbook/api/EffectData.java b/src/main/java/de/erethon/spellbook/api/EffectData.java
+index 86e163e5b0ac2c9e0305003b8e1a2357d68883e5..72cc091ea5d582923623215b34737544624db116 100644
+--- a/src/main/java/de/erethon/spellbook/api/EffectData.java
++++ b/src/main/java/de/erethon/spellbook/api/EffectData.java
+@@ -19,6 +19,7 @@ public class EffectData extends YamlConfiguration {
+     SpellbookAPI spellbookAPI;
+     SpellQueue queue;
+     private final String id;
++    private File file;
+ 
+     private int maxDuration;
+     private int maxStacks;
+@@ -68,9 +69,14 @@ public class EffectData extends YamlConfiguration {
+         return spellEffect;
+     }
+ 
++    public File getFile() {
++        return file;
++    }
++
+     @Override
+     public void load(@NotNull File file) throws IOException, InvalidConfigurationException {
+         super.load(file);
++        this.file = file;
+         String className = getString("class");
+         try {
+             effectClass = (Class<? extends SpellEffect>) Class.forName("de.erethon.spellbook.effects." + className, true, classLoader);
 diff --git a/src/main/java/de/erethon/spellbook/api/SpellCaster.java b/src/main/java/de/erethon/spellbook/api/SpellCaster.java
 index 7260506a0830a69278e6276174857f588c1c6125..3650f4e7206a0de6cf5da42b6d66fd7ceb9cb5ee 100644
 --- a/src/main/java/de/erethon/spellbook/api/SpellCaster.java
@@ -230,10 +257,10 @@ index 0000000000000000000000000000000000000000..ff0571c54408568ef66cc149e10a9daa
 +    }
 +}
 diff --git a/src/main/java/de/erethon/spellbook/api/SpellData.java b/src/main/java/de/erethon/spellbook/api/SpellData.java
-index 1f8dd5a590298a7b0bbb2b47354163eb671cec37..c73846a2df867431b15e9bbe27086585d2ade8a9 100644
+index 1f8dd5a590298a7b0bbb2b47354163eb671cec37..d0c92785630a2967c9570845d0f6e2afa6651234 100644
 --- a/src/main/java/de/erethon/spellbook/api/SpellData.java
 +++ b/src/main/java/de/erethon/spellbook/api/SpellData.java
-@@ -10,18 +10,15 @@ import org.jetbrains.annotations.NotNull;
+@@ -10,18 +10,16 @@ import org.jetbrains.annotations.NotNull;
  import java.io.File;
  import java.io.IOException;
  import java.lang.reflect.InvocationTargetException;
@@ -250,27 +277,32 @@ index 1f8dd5a590298a7b0bbb2b47354163eb671cec37..c73846a2df867431b15e9bbe27086585
      private final String id;
 -    private Component name;
 -    private final List<String> description = new ArrayList<>();
++    private File file;
 +    private int descriptionLineCount = 0;
  
      private Class<? extends SpellbookSpell> spellClass;
      private final ClassLoader classLoader;
-@@ -71,32 +68,6 @@ public class SpellData extends YamlConfiguration {
+@@ -71,38 +69,24 @@ public class SpellData extends YamlConfiguration {
          return id;
      }
  
 -    @NotNull
 -    public Component getDisplayName() {
 -        return name;
--    }
--
++    public int getCooldown() {
++        return cooldown;
+     }
+ 
 -    public List<Component> getDescription() {
 -        List<Component> components = new ArrayList<>();
 -        for (String entry : description) {
 -            components.add(miniMessage.deserialize(entry));
 -        }
 -        return components;
--    }
--
++    public SpellbookAPI getSpellbook() {
++        return spellbookAPI;
+     }
+ 
 -    public List<Component> getDescription(String[] placeholders, String[] replacements) {
 -        if (replacements.length < placeholders.length) {
 -            throw new RuntimeException("Invalid amount of replacements for provided placeholders");
@@ -282,27 +314,32 @@ index 1f8dd5a590298a7b0bbb2b47354163eb671cec37..c73846a2df867431b15e9bbe27086585
 -            }
 -        }
 -        return components;
--    }
--
-     public int getCooldown() {
-         return cooldown;
-     }
-@@ -105,6 +76,14 @@ public class SpellData extends YamlConfiguration {
-         return spellbookAPI;
-     }
- 
 +    public void setDescriptionLineCount(int descriptionLineCount) {
 +        this.descriptionLineCount = descriptionLineCount;
-+    }
-+
+     }
+ 
+-    public int getCooldown() {
+-        return cooldown;
 +    public int getDescriptionLineCount() {
 +        return descriptionLineCount;
-+    }
-+
+     }
+ 
+-    public SpellbookAPI getSpellbook() {
+-        return spellbookAPI;
++    public File getFile() {
++        return file;
+     }
+ 
      @Override
-     public void save(@NotNull File file) throws IOException {
-         super.save(file);
-@@ -121,7 +100,5 @@ public class SpellData extends YamlConfiguration {
+@@ -113,6 +97,7 @@ public class SpellData extends YamlConfiguration {
+     @Override
+     public void load(@NotNull File file) throws IOException, InvalidConfigurationException {
+         super.load(file);
++        this.file = file;
+         String className = getString("class");
+         try {
+             spellClass = (Class<? extends SpellbookSpell>) Class.forName("de.erethon.spellbook.spells." + className, true, classLoader);
+@@ -121,7 +106,5 @@ public class SpellData extends YamlConfiguration {
              throw new RuntimeException(e);
          }
          cooldown = getInt("cooldown", 0);
@@ -511,10 +548,10 @@ index c4a07139e108bbd54e33d499bb883b6ec6eb8baa..5c6eda7dc1172e8d00c4bac9969b01af
          if (currentTickInterval >= tickInterval) {
              currentTickInterval = 0;
 diff --git a/src/main/java/de/erethon/spellbook/api/TraitData.java b/src/main/java/de/erethon/spellbook/api/TraitData.java
-index 5c78b4f736ad271dcc512d1c85f83728d956dc00..06555d511e3280cef831e2ca6a7188b0f14207f0 100644
+index 5c78b4f736ad271dcc512d1c85f83728d956dc00..3b36e8b26e2253e6025ad12606e690f5f6bcccdb 100644
 --- a/src/main/java/de/erethon/spellbook/api/TraitData.java
 +++ b/src/main/java/de/erethon/spellbook/api/TraitData.java
-@@ -10,26 +10,21 @@ import org.jetbrains.annotations.NotNull;
+@@ -10,26 +10,22 @@ import org.jetbrains.annotations.NotNull;
  import java.io.File;
  import java.io.IOException;
  import java.lang.reflect.InvocationTargetException;
@@ -531,6 +568,7 @@ index 5c78b4f736ad271dcc512d1c85f83728d956dc00..06555d511e3280cef831e2ca6a7188b0
 -    MiniMessage miniMessage = MiniMessage.miniMessage();
  
      private final String id;
++    private File file;
  
      private Class<? extends SpellTrait> traitClass;
      private final ClassLoader classLoader;
@@ -543,7 +581,7 @@ index 5c78b4f736ad271dcc512d1c85f83728d956dc00..06555d511e3280cef831e2ca6a7188b0
  
      public TraitData(SpellbookAPI spellbookAPI, String id, ClassLoader classLoader) {
          this.spellbookAPI = spellbookAPI;
-@@ -49,41 +44,6 @@ public class TraitData extends YamlConfiguration {
+@@ -49,41 +45,6 @@ public class TraitData extends YamlConfiguration {
          return id;
      }
  
@@ -585,7 +623,7 @@ index 5c78b4f736ad271dcc512d1c85f83728d956dc00..06555d511e3280cef831e2ca6a7188b0
      /**
       * @return a Set of SpellbookSpells affected by this trait. <b>If the Set is empty, all Spells will be affected.</b>
       */
-@@ -116,6 +76,14 @@ public class TraitData extends YamlConfiguration {
+@@ -116,9 +77,22 @@ public class TraitData extends YamlConfiguration {
          return spellTrait;
      }
  
@@ -597,10 +635,18 @@ index 5c78b4f736ad271dcc512d1c85f83728d956dc00..06555d511e3280cef831e2ca6a7188b0
 +        return descriptionLineCount;
 +    }
 +
++    public File getFile() {
++        return file;
++    }
++
      @Override
      public void load(@NotNull File file) throws IOException, InvalidConfigurationException {
          super.load(file);
-@@ -126,8 +94,6 @@ public class TraitData extends YamlConfiguration {
++        this.file = file;
+         String className = getString("class");
+         try {
+             traitClass = (Class<? extends SpellTrait>) Class.forName("de.erethon.spellbook.traits." + className, true, classLoader);
+@@ -126,8 +100,6 @@ public class TraitData extends YamlConfiguration {
              spellbookAPI.getServer().getLogger().warning("Could not find class for trait " + id + ": " + className);
              throw new RuntimeException(e1);
          }
