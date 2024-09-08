@@ -938,7 +938,7 @@ index cb61462d4691a055a4b25f7b953609d8a154fdfe..73ccb55889de521c65c76c7e15bbd6d1
          float f = this.spawnDimensionsScale * this.getWidth() / 2.0F;
          float f1 = this.spawnDimensionsScale * this.getHeight();
 diff --git a/src/main/java/net/minecraft/world/entity/LivingEntity.java b/src/main/java/net/minecraft/world/entity/LivingEntity.java
-index ccd9dff20a60f019e0c320acfb526b8bf3e5f806..76922d68702b6299fb2006dfd896d17faea1b05c 100644
+index ccd9dff20a60f019e0c320acfb526b8bf3e5f806..f582f93b3022ced29bbd08b63ce041df10d2a58b 100644
 --- a/src/main/java/net/minecraft/world/entity/LivingEntity.java
 +++ b/src/main/java/net/minecraft/world/entity/LivingEntity.java
 @@ -11,6 +11,9 @@ import com.mojang.datafixers.util.Pair;
@@ -1084,7 +1084,7 @@ index ccd9dff20a60f019e0c320acfb526b8bf3e5f806..76922d68702b6299fb2006dfd896d17f
 +                resistance = resistance - living.getAttributeValue(type.pen); // Remove the value of the attackers penetration attribute from the victims resistance
 +            }
 +            finalDmg = amount - resistance;
-+            EntityDamageByEntityEvent event = new EntityDamageByEntityEvent(getBukkitEntity(), attacker.getBukkitEntity(), EntityDamageEvent.DamageCause.ENTITY_ATTACK, finalDmg); // TODO: Add type back
++            EntityDamageByEntityEvent event = new EntityDamageByEntityEvent(attacker.getBukkitEntity(), getBukkitEntity(), EntityDamageEvent.DamageCause.ENTITY_ATTACK, finalDmg, type.apiType); // TODO: Add type back
 +            Bukkit.getServer().getPluginManager().callEvent(event);
 +            if (event.isCancelled()) {
 +                return false;

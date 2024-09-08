@@ -751,7 +751,7 @@ index 148c4aad384ae8e3b8b22d264a84bddfbcafdf1e..90a5f69d513833f116715f2f546593f9
          this.damagerState = damagerState;
      }
 diff --git a/src/main/java/org/bukkit/event/entity/EntityDamageByEntityEvent.java b/src/main/java/org/bukkit/event/entity/EntityDamageByEntityEvent.java
-index 8ea4be529400b34df3d31b0f17c2d145345523d9..e9a87df62a86ee6ba3f2cabf702df25121b84ae1 100644
+index 8ea4be529400b34df3d31b0f17c2d145345523d9..d6faa1a1d571c6fa93ca99e0a789ba289c77579e 100644
 --- a/src/main/java/org/bukkit/event/entity/EntityDamageByEntityEvent.java
 +++ b/src/main/java/org/bukkit/event/entity/EntityDamageByEntityEvent.java
 @@ -2,8 +2,11 @@ package org.bukkit.event.entity;
@@ -766,15 +766,16 @@ index 8ea4be529400b34df3d31b0f17c2d145345523d9..e9a87df62a86ee6ba3f2cabf702df251
  import org.bukkit.entity.Entity;
  import org.jetbrains.annotations.ApiStatus;
  import org.jetbrains.annotations.NotNull;
-@@ -27,24 +30,30 @@ public class EntityDamageByEntityEvent extends EntityDamageEvent {
+@@ -27,24 +30,31 @@ public class EntityDamageByEntityEvent extends EntityDamageEvent {
          this.critical = false; // Paper - add critical damage API
      }
  
 -    @Deprecated(forRemoval = true)
-+    public EntityDamageByEntityEvent(@NotNull final Entity damager, @NotNull final Entity damagee, @NotNull final DamageCause cause, final double damage, DamageType type) {
++    public EntityDamageByEntityEvent(@NotNull final Entity damager, @NotNull final Entity damagee, @NotNull final DamageCause cause, final double damage, PDamageType type) {
 +        super(damagee, cause, damage);
 +        this.damager = damager;
 +        this.critical = false; // Paper - add critical damage API
++        this.pDamageType = type;
 +    }
 +
      public EntityDamageByEntityEvent(@NotNull final Entity damager, @NotNull final Entity damagee, @NotNull final DamageCause cause, @NotNull final Map<DamageModifier, Double> modifiers, @NotNull final Map<DamageModifier, ? extends Function<? super Double, Double>> modifierFunctions) {
