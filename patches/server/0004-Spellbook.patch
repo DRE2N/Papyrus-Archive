@@ -951,7 +951,7 @@ index cb61462d4691a055a4b25f7b953609d8a154fdfe..73ccb55889de521c65c76c7e15bbd6d1
          float f = this.spawnDimensionsScale * this.getWidth() / 2.0F;
          float f1 = this.spawnDimensionsScale * this.getHeight();
 diff --git a/src/main/java/net/minecraft/world/entity/LivingEntity.java b/src/main/java/net/minecraft/world/entity/LivingEntity.java
-index ccd9dff20a60f019e0c320acfb526b8bf3e5f806..f582f93b3022ced29bbd08b63ce041df10d2a58b 100644
+index ccd9dff20a60f019e0c320acfb526b8bf3e5f806..be3c44531a7dd1c3eff68e89ab6d18b469a5fb2f 100644
 --- a/src/main/java/net/minecraft/world/entity/LivingEntity.java
 +++ b/src/main/java/net/minecraft/world/entity/LivingEntity.java
 @@ -11,6 +11,9 @@ import com.mojang.datafixers.util.Pair;
@@ -1075,7 +1075,7 @@ index ccd9dff20a60f019e0c320acfb526b8bf3e5f806..f582f93b3022ced29bbd08b63ce041df
          this.animStepO = this.animStep;
          this.yBodyRotO = this.yBodyRot;
          this.yHeadRotO = this.yHeadRot;
-@@ -1409,8 +1455,95 @@ public abstract class LivingEntity extends Entity implements Attackable {
+@@ -1409,8 +1455,94 @@ public abstract class LivingEntity extends Entity implements Attackable {
          return this.getHealth() <= 0.0F;
      }
  
@@ -1106,7 +1106,7 @@ index ccd9dff20a60f019e0c320acfb526b8bf3e5f806..f582f93b3022ced29bbd08b63ce041df
 +                type = CraftPDamageType.ofAPI(event.getDamageType());
 +            }
 +            finalDmg = event.getDamage();
-+            if (source.getEntity() instanceof net.minecraft.world.entity.player.Player player) {
++            if (source.getEntity() instanceof ServerPlayer player && player.isRealPlayer) {
 +                setLastHurtByPlayer(player);
 +            } else if (source.getEntity() instanceof LivingEntity livingEntity){
 +                setLastHurtByMob(livingEntity);
@@ -1134,7 +1134,9 @@ index ccd9dff20a60f019e0c320acfb526b8bf3e5f806..f582f93b3022ced29bbd08b63ce041df
 +            }
 +
 +            this.knockback(0.4000000059604645D, x, z, attacker, EntityKnockbackEvent.Cause.DAMAGE);
-+            indicateDamage(x, z);
++            if (this instanceof ServerPlayer player && player.isRealPlayer) {
++                indicateDamage(x, z);
++            }
 +            markHurt();
 +
 +            if (attacker instanceof LivingEntity living) {
@@ -1144,9 +1146,6 @@ index ccd9dff20a60f019e0c320acfb526b8bf3e5f806..f582f93b3022ced29bbd08b63ce041df
 +
 +            if (finalDmg <= 0) {
 +                return false;
-+            }
-+            if (attacker instanceof LivingEntity living) {
-+                //living.getBukkitEntity().sendActionBar(Component.text(type +   ": "  + amount  + " | Res: "  + getAttributeValue(type.res) +  " | Pen: " + living.getAttributeValue(type.pen) + " | = " +  finalDmg));
 +            }
 +        }
 +        invulnerableTime = (int) getAttribute(Attributes.COMBAT_HURTINVUL).getValue();
@@ -1171,7 +1170,7 @@ index ccd9dff20a60f019e0c320acfb526b8bf3e5f806..f582f93b3022ced29bbd08b63ce041df
          if (this.isInvulnerableTo(source)) {
              return false;
          } else if (this.level().isClientSide) {
-@@ -1617,7 +1750,7 @@ public abstract class LivingEntity extends Entity implements Attackable {
+@@ -1617,7 +1749,7 @@ public abstract class LivingEntity extends Entity implements Attackable {
  
              return flag2;
          }
@@ -1180,7 +1179,7 @@ index ccd9dff20a60f019e0c320acfb526b8bf3e5f806..f582f93b3022ced29bbd08b63ce041df
  
      // Paper start - only call damage event when actuallyHurt will be called - move out amount computation logic
      private float computeAmountFromEntityDamageEvent(final EntityDamageEvent event) {
-@@ -3123,6 +3256,10 @@ public abstract class LivingEntity extends Entity implements Attackable {
+@@ -3123,6 +3255,10 @@ public abstract class LivingEntity extends Entity implements Attackable {
      }
  
      public boolean doHurtTarget(Entity target) {
