@@ -604,7 +604,7 @@ index 8c2f9f549b5155b8d8fecbc22164b334805381e2..07378cc827d424127156d5b71c8381c6
  import net.minecraft.commands.Commands;
  import net.minecraft.commands.arguments.selector.options.EntitySelectorOptions;
 diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
-index 496c6f0b18bfe5093cea9501c80d1fe585e3a242..91a89f7edd459e57c5f9b976f6f7d1d830dbaa71 100644
+index 496c6f0b18bfe5093cea9501c80d1fe585e3a242..69b8bd4a555a3192e137a510d00822838e117a28 100644
 --- a/src/main/java/net/minecraft/server/MinecraftServer.java
 +++ b/src/main/java/net/minecraft/server/MinecraftServer.java
 @@ -1632,6 +1632,9 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
@@ -617,15 +617,6 @@ index 496c6f0b18bfe5093cea9501c80d1fe585e3a242..91a89f7edd459e57c5f9b976f6f7d1d8
          new com.destroystokyo.paper.event.server.ServerTickEndEvent(this.tickCount, ((double)(endTime - lastTick) / 1000000D), remaining).callEvent();
          this.server.spark.tickEnd(((double)(endTime - lastTick) / 1000000D)); // Paper - spark
          // Paper end - Server Tick Events
-@@ -2286,7 +2289,7 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
- 
-     public int getSpawnRadius(@Nullable ServerLevel world) {
-         return world != null ? world.getGameRules().getInt(GameRules.RULE_SPAWN_RADIUS) : 10;
--    }
-+    }B
- 
-     public ServerAdvancementManager getAdvancements() {
-         return this.resources.managers.getAdvancements();
 diff --git a/src/main/java/net/minecraft/server/level/ServerEntity.java b/src/main/java/net/minecraft/server/level/ServerEntity.java
 index 8ea2f24695f5dad55e21f238b69442513e7a90c6..c7956ac86281f10ba753079261216afac6aa88c0 100644
 --- a/src/main/java/net/minecraft/server/level/ServerEntity.java
