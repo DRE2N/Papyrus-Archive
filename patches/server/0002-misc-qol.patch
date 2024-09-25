@@ -50,7 +50,7 @@ index 3e550f8e7cd4f4e16f499a8a2a4b95420270f07a..a5f9f2542af86ce95fb31887260fd88f
          if (connected && (InnerUtil.canSendImmediate(this, packet)
              || (io.papermc.paper.util.MCUtil.isMainThread() && packet.isReady() && this.pendingActions.isEmpty()
 diff --git a/src/main/java/net/minecraft/server/level/ServerPlayer.java b/src/main/java/net/minecraft/server/level/ServerPlayer.java
-index 6c280abdef5f80b668d6090f9d35283a33e21e0c..5203e3b0b2016a428c179a2a124ef4348d9705be 100644
+index c396580a9cfd86ff261bed439bb4662ae88010b5..abfbb33e0c0f64d3d21e9c1113f862a5db831b27 100644
 --- a/src/main/java/net/minecraft/server/level/ServerPlayer.java
 +++ b/src/main/java/net/minecraft/server/level/ServerPlayer.java
 @@ -6,29 +6,11 @@ import com.mojang.datafixers.util.Either;
@@ -230,7 +230,7 @@ index 6c280abdef5f80b668d6090f9d35283a33e21e0c..5203e3b0b2016a428c179a2a124ef434
      public ServerPlayer(MinecraftServer server, ServerLevel world, GameProfile profile, ClientInformation clientOptions) {
          super(world, world.getSharedSpawnPos(), world.getSharedSpawnAngle(), profile);
          this.chatVisibility = ChatVisiblity.FULL;
-@@ -2943,3 +2878,4 @@ public class ServerPlayer extends net.minecraft.world.entity.player.Player imple
+@@ -2947,3 +2882,4 @@ public class ServerPlayer extends net.minecraft.world.entity.player.Player imple
      }
      // CraftBukkit end
  }

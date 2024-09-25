@@ -2006,7 +2006,7 @@ index 0000000000000000000000000000000000000000..8b72dba1a152833a89730155ff166328
 +    }
 +}
 diff --git a/src/main/java/org/bukkit/Server.java b/src/main/java/org/bukkit/Server.java
-index 5aa64ea39ebd92e5067c53cea49a8685c0b9eee4..389a9c0196d5588f2f3174ef1e373916cc89b765 100644
+index 6246251caf2c6f025c824b8e7a944b8d48751fa1..ce3aaca747a987d89894f44ea1bb3f94dd10526a 100644
 --- a/src/main/java/org/bukkit/Server.java
 +++ b/src/main/java/org/bukkit/Server.java
 @@ -14,6 +14,7 @@ import java.util.Set;
@@ -2086,7 +2086,7 @@ index f89edd9c129802f70eac022ff6bf80bef378f5e8..a81d5720f19f15dcffdf346f5f8d4e23
       * Deals the given amount of damage to this entity from a specified
       * {@link DamageSource}.
 diff --git a/src/main/java/org/bukkit/entity/LivingEntity.java b/src/main/java/org/bukkit/entity/LivingEntity.java
-index fcdc5fce88720cc926a3953d80b5045113d1516c..b9ed36dc7dc67b9d045190ffb592fdbd87acbc52 100644
+index 68c08e7a212bc3e3885f9b5a4d9aef85fcb3b029..a6fbd5cd8a147df23e7cd514f58f2db2ba67b698 100644
 --- a/src/main/java/org/bukkit/entity/LivingEntity.java
 +++ b/src/main/java/org/bukkit/entity/LivingEntity.java
 @@ -4,6 +4,9 @@ import java.util.Collection;
@@ -2108,7 +2108,7 @@ index fcdc5fce88720cc926a3953d80b5045113d1516c..b9ed36dc7dc67b9d045190ffb592fdbd
  
      /**
       * Gets the height of the living entity's eyes above its Location.
-@@ -1391,7 +1394,6 @@ public interface LivingEntity extends Attributable, Damageable, ProjectileSource
+@@ -1401,7 +1404,6 @@ public interface LivingEntity extends Attributable, Damageable, ProjectileSource
       * @param slot the slot
       */
      void broadcastSlotBreak(org.bukkit.inventory.@NotNull EquipmentSlot slot);
@@ -2116,7 +2116,7 @@ index fcdc5fce88720cc926a3953d80b5045113d1516c..b9ed36dc7dc67b9d045190ffb592fdbd
      /**
       * Notifies specified players that the item in the slot
       * of this entity broke.
-@@ -1458,4 +1460,6 @@ public interface LivingEntity extends Attributable, Damageable, ProjectileSource
+@@ -1468,4 +1470,6 @@ public interface LivingEntity extends Attributable, Damageable, ProjectileSource
       */
      boolean canUseEquipmentSlot(org.bukkit.inventory.@NotNull EquipmentSlot slot);
      // Paper end - Expose canUseSlot

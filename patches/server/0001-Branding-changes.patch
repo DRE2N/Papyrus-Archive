@@ -5,7 +5,7 @@ Subject: [PATCH] Branding changes
 
 
 diff --git a/build.gradle.kts b/build.gradle.kts
-index 421f6b3dc8890d63d2e7aa774d0bf8f7e15890ab..f687ca4a694468b18bbff5cb5fbd8e9608d24af2 100644
+index 648281575eb8d45a5c06549eb3d0f517c086fe64..65db3659e2720f019b2205c1887eb24cf16a5df5 100644
 --- a/build.gradle.kts
 +++ b/build.gradle.kts
 @@ -13,7 +13,7 @@ configurations.named(log4jPlugins.compileClasspathConfigurationName) {
@@ -46,10 +46,10 @@ index 421f6b3dc8890d63d2e7aa774d0bf8f7e15890ab..f687ca4a694468b18bbff5cb5fbd8e96
              "Git-Commit" to gitHash, // Paper
              "CraftBukkit-Package-Version" to paperweight.craftBukkitPackageVersion.get(), // Paper
 diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
-index 23ddd26af762c1cd7fb3920669abb96b3213ab37..496c6f0b18bfe5093cea9501c80d1fe585e3a242 100644
+index 696d075ca2883f3c37e35f983c4d020e5db89d16..c7c5a3ad30ef62b7cd01f97a220b35e5b344ff75 100644
 --- a/src/main/java/net/minecraft/server/MinecraftServer.java
 +++ b/src/main/java/net/minecraft/server/MinecraftServer.java
-@@ -1942,7 +1942,8 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+@@ -1940,7 +1940,8 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
  
      @DontObfuscate
      public String getServerModName() {
@@ -60,7 +60,7 @@ index 23ddd26af762c1cd7fb3920669abb96b3213ab37..496c6f0b18bfe5093cea9501c80d1fe5
  
      public SystemReport fillSystemReport(SystemReport details) {
 diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-index 1b36e94617d4e777c419660936460d5cf8a4b3e8..b50175ef8e71b4075edc0e2b45b55db73dd05e9f 100644
+index b7af2d4300facf41a025c8ca322bf6541949b3ab..b5dd499fb11d70add7fa33dd72c20a704599fa6e 100644
 --- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 +++ b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 @@ -266,7 +266,8 @@ import javax.annotation.Nullable; // Paper
