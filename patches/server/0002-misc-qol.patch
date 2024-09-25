@@ -49,6 +49,26 @@ index 3e550f8e7cd4f4e16f499a8a2a4b95420270f07a..a5f9f2542af86ce95fb31887260fd88f
          packet.onPacketDispatch(this.getPlayer());
          if (connected && (InnerUtil.canSendImmediate(this, packet)
              || (io.papermc.paper.util.MCUtil.isMainThread() && packet.isReady() && this.pendingActions.isEmpty()
+diff --git a/src/main/java/net/minecraft/network/protocol/game/ClientboundLoginPacket.java b/src/main/java/net/minecraft/network/protocol/game/ClientboundLoginPacket.java
+index 667d1da3b6332737d7382d383bf15b53bd726442..2a8bf667959d8c9d6510362c6a0ca5cb010317c4 100644
+--- a/src/main/java/net/minecraft/network/protocol/game/ClientboundLoginPacket.java
++++ b/src/main/java/net/minecraft/network/protocol/game/ClientboundLoginPacket.java
+@@ -49,13 +49,13 @@ public record ClientboundLoginPacket(
+         buf.writeBoolean(this.hardcore);
+         buf.writeCollection(this.levels, FriendlyByteBuf::writeResourceKey);
+         buf.writeVarInt(this.maxPlayers);
+-        buf.writeVarInt(this.chunkRadius);
++        buf.writeVarInt(32); // Papyrus - fake vd to remove fog
+         buf.writeVarInt(this.simulationDistance);
+         buf.writeBoolean(this.reducedDebugInfo);
+         buf.writeBoolean(this.showDeathScreen);
+         buf.writeBoolean(this.doLimitedCrafting);
+         this.commonPlayerSpawnInfo.write(buf);
+-        buf.writeBoolean(this.enforcesSecureChat);
++        buf.writeBoolean(true); // Papyrus - Disable popup
+     }
+ 
+     @Override
 diff --git a/src/main/java/net/minecraft/server/level/ServerPlayer.java b/src/main/java/net/minecraft/server/level/ServerPlayer.java
 index c396580a9cfd86ff261bed439bb4662ae88010b5..abfbb33e0c0f64d3d21e9c1113f862a5db831b27 100644
 --- a/src/main/java/net/minecraft/server/level/ServerPlayer.java
