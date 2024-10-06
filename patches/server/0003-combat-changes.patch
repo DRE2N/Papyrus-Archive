@@ -561,6 +561,19 @@ index 8cca2ac616a2c80268c96b9f95e33f834a0fc8fd..e5fd4d5d7a7a895d394ebbd4d145edd8
      }
  
      @Override
+diff --git a/src/main/java/net/minecraft/network/protocol/game/ClientboundContainerSetSlotPacket.java b/src/main/java/net/minecraft/network/protocol/game/ClientboundContainerSetSlotPacket.java
+index 63f6a2437da9363786b55af0a7cbc5373232d35b..265a68ed2da47051b31c59a4463d198e93bd4cb9 100644
+--- a/src/main/java/net/minecraft/network/protocol/game/ClientboundContainerSetSlotPacket.java
++++ b/src/main/java/net/minecraft/network/protocol/game/ClientboundContainerSetSlotPacket.java
+@@ -35,7 +35,7 @@ public class ClientboundContainerSetSlotPacket implements Packet<ClientGamePacke
+         buf.writeByte(this.containerId);
+         buf.writeVarInt(this.stateId);
+         buf.writeShort(this.slot);
+-        ItemStack.OPTIONAL_STREAM_CODEC.encode(buf, this.itemStack);
++        ItemStack.OPTIONAL_TRANSLATED_STREAM_CODEC.encode(buf, this.itemStack); // Papyrus - Item translations
+     }
+ 
+     @Override
 diff --git a/src/main/java/net/minecraft/network/protocol/game/ClientboundSetEquipmentPacket.java b/src/main/java/net/minecraft/network/protocol/game/ClientboundSetEquipmentPacket.java
 index d152871142d3def2ac04f50037db53b0527f7894..d181273d3e09519467abe4e165cef3126f343e9b 100644
 --- a/src/main/java/net/minecraft/network/protocol/game/ClientboundSetEquipmentPacket.java
@@ -1797,18 +1810,9 @@ index 2bb86c2d0c6b46e73a1ea191bb2be4586a85829b..3193a980131b4c241fbc1434abceec5e
  import javax.annotation.Nullable;
  import net.minecraft.Util;
 diff --git a/src/main/java/net/minecraft/world/item/ItemStack.java b/src/main/java/net/minecraft/world/item/ItemStack.java
-index eec0ec43590be7e8ae5b530a7404c98b5e23cb53..7557d93fb9b70fd1555045004fe8d7572b1799f2 100644
+index eec0ec43590be7e8ae5b530a7404c98b5e23cb53..000d55b3180b582015b11a024c99b85f76e104ae 100644
 --- a/src/main/java/net/minecraft/world/item/ItemStack.java
 +++ b/src/main/java/net/minecraft/world/item/ItemStack.java
-@@ -187,7 +187,7 @@ public final class ItemStack implements DataComponentHolder {
-                 boolean prev = net.minecraft.network.chat.ComponentSerialization.DONT_RENDER_TRANSLATABLES.get();
-                 try {
-                     net.minecraft.network.chat.ComponentSerialization.DONT_RENDER_TRANSLATABLES.set(true);
--                DataComponentPatch.STREAM_CODEC.encode(registryfriendlybytebuf, itemstack.components.asPatch());
-+                DataComponentPatch.STREAM_CODEC.encode(registryfriendlybytebuf, itemstack.components.asClientFilteredPatch()); // Papyrus - Filter out server-only components
-                 } finally {
-                     net.minecraft.network.chat.ComponentSerialization.DONT_RENDER_TRANSLATABLES.set(prev);
-                 }
 @@ -195,6 +195,37 @@ public final class ItemStack implements DataComponentHolder {
              }
          }
