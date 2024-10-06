@@ -421,10 +421,10 @@ index 23bd6d2d8fed5a3491e856f8b875456dd29f8aaf..62f2da32b7954510661adfd6bd02d433
              this.vanilla = new ServerBossEvent(
                  PaperAdventure.asVanilla(this.bar.name()),
 diff --git a/src/main/java/net/minecraft/core/component/PatchedDataComponentMap.java b/src/main/java/net/minecraft/core/component/PatchedDataComponentMap.java
-index 22da75d8197de29a150c9eade7994deecae53a10..b4d02fb99c540920f8be940498d5392543159358 100644
+index 22da75d8197de29a150c9eade7994deecae53a10..41389be09bb8c6c4d8bd57930d4f35a2a0ccf4fb 100644
 --- a/src/main/java/net/minecraft/core/component/PatchedDataComponentMap.java
 +++ b/src/main/java/net/minecraft/core/component/PatchedDataComponentMap.java
-@@ -205,6 +205,20 @@ public final class PatchedDataComponentMap implements DataComponentMap {
+@@ -205,6 +205,19 @@ public final class PatchedDataComponentMap implements DataComponentMap {
          }
      }
  
@@ -433,11 +433,10 @@ index 22da75d8197de29a150c9eade7994deecae53a10..b4d02fb99c540920f8be940498d53925
 +        if (this.patch.isEmpty()) {
 +            return DataComponentPatch.EMPTY;
 +        } else {
-+            this.copyOnWrite = true;
-+            DataComponentPatch filteredPatch = new DataComponentPatch(this.patch);
-+            filteredPatch.map.remove(DataComponents.ATTRIBUTE_MODIFIERS); // Client does not like our attributes
-+            filteredPatch.map.remove(DataComponents.CUSTOM_DATA); // Players shouldn't know about item chances and so on
-+            return filteredPatch;
++            PatchedDataComponentMap filteredPatch = this.copy();
++            filteredPatch.remove(DataComponents.ATTRIBUTE_MODIFIERS); // Client does not like our attributes
++            filteredPatch.remove(DataComponents.CUSTOM_DATA); // Players shouldn't know about item chances and so on
++            return filteredPatch.asPatch();
 +        }
 +    }
 +    // Papyrus end
