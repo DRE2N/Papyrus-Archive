@@ -420,6 +420,31 @@ index 23bd6d2d8fed5a3491e856f8b875456dd29f8aaf..62f2da32b7954510661adfd6bd02d433
          if (this.vanilla == null) {
              this.vanilla = new ServerBossEvent(
                  PaperAdventure.asVanilla(this.bar.name()),
+diff --git a/src/main/java/net/minecraft/core/component/PatchedDataComponentMap.java b/src/main/java/net/minecraft/core/component/PatchedDataComponentMap.java
+index 22da75d8197de29a150c9eade7994deecae53a10..b4d02fb99c540920f8be940498d5392543159358 100644
+--- a/src/main/java/net/minecraft/core/component/PatchedDataComponentMap.java
++++ b/src/main/java/net/minecraft/core/component/PatchedDataComponentMap.java
+@@ -205,6 +205,20 @@ public final class PatchedDataComponentMap implements DataComponentMap {
+         }
+     }
+ 
++    // Papyrus start - ItemStack filtering
++    public DataComponentPatch asClientFilteredPatch() {
++        if (this.patch.isEmpty()) {
++            return DataComponentPatch.EMPTY;
++        } else {
++            this.copyOnWrite = true;
++            DataComponentPatch filteredPatch = new DataComponentPatch(this.patch);
++            filteredPatch.map.remove(DataComponents.ATTRIBUTE_MODIFIERS); // Client does not like our attributes
++            filteredPatch.map.remove(DataComponents.CUSTOM_DATA); // Players shouldn't know about item chances and so on
++            return filteredPatch;
++        }
++    }
++    // Papyrus end
++
+     public PatchedDataComponentMap copy() {
+         this.copyOnWrite = true;
+         return new PatchedDataComponentMap(this.prototype, this.patch, true);
 diff --git a/src/main/java/net/minecraft/network/Connection.java b/src/main/java/net/minecraft/network/Connection.java
 index a5f9f2542af86ce95fb31887260fd88fc5f84fb2..3c2d75e07e949367cf33ace7178504e79b856552 100644
 --- a/src/main/java/net/minecraft/network/Connection.java
@@ -1772,9 +1797,18 @@ index 2bb86c2d0c6b46e73a1ea191bb2be4586a85829b..3193a980131b4c241fbc1434abceec5e
  import javax.annotation.Nullable;
  import net.minecraft.Util;
 diff --git a/src/main/java/net/minecraft/world/item/ItemStack.java b/src/main/java/net/minecraft/world/item/ItemStack.java
-index eec0ec43590be7e8ae5b530a7404c98b5e23cb53..acc80242232e579311be0f0219b695a415cce7d1 100644
+index eec0ec43590be7e8ae5b530a7404c98b5e23cb53..7557d93fb9b70fd1555045004fe8d7572b1799f2 100644
 --- a/src/main/java/net/minecraft/world/item/ItemStack.java
 +++ b/src/main/java/net/minecraft/world/item/ItemStack.java
+@@ -187,7 +187,7 @@ public final class ItemStack implements DataComponentHolder {
+                 boolean prev = net.minecraft.network.chat.ComponentSerialization.DONT_RENDER_TRANSLATABLES.get();
+                 try {
+                     net.minecraft.network.chat.ComponentSerialization.DONT_RENDER_TRANSLATABLES.set(true);
+-                DataComponentPatch.STREAM_CODEC.encode(registryfriendlybytebuf, itemstack.components.asPatch());
++                DataComponentPatch.STREAM_CODEC.encode(registryfriendlybytebuf, itemstack.components.asClientFilteredPatch()); // Papyrus - Filter out server-only components
+                 } finally {
+                     net.minecraft.network.chat.ComponentSerialization.DONT_RENDER_TRANSLATABLES.set(prev);
+                 }
 @@ -195,6 +195,37 @@ public final class ItemStack implements DataComponentHolder {
              }
          }
@@ -1805,7 +1839,7 @@ index eec0ec43590be7e8ae5b530a7404c98b5e23cb53..acc80242232e579311be0f0219b695a4
 +            } else {
 +                registryfriendlybytebuf.writeVarInt(itemstack.getCount());
 +                ITEM_STREAM_CODEC.encode(registryfriendlybytebuf, itemstack.getItemHolder()); // CraftBukkit - decompile error
-+                DataComponentPatch.STREAM_CODEC.encode(registryfriendlybytebuf, itemstack.components.asPatch());
++                DataComponentPatch.STREAM_CODEC.encode(registryfriendlybytebuf, itemstack.components.asClientFilteredPatch()); // Papyrus - Filter out server-only components
 +            }
 +        }
 +    };
