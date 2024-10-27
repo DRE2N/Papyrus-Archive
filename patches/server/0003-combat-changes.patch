@@ -663,7 +663,7 @@ index c96f3dcd365bc140b1f4680ef6bd770c80f8eda1..c52226cda392f0590341a9bae0aaeb7e
                  ServerLevel.this.updateSleepingPlayerList();
              }
 diff --git a/src/main/java/net/minecraft/server/level/ServerPlayer.java b/src/main/java/net/minecraft/server/level/ServerPlayer.java
-index abfbb33e0c0f64d3d21e9c1113f862a5db831b27..d855530b83666747b01de92e6100c099915507c6 100644
+index abfbb33e0c0f64d3d21e9c1113f862a5db831b27..262a9dee58149421fa6e0ab5fd2fdca0d1f66be0 100644
 --- a/src/main/java/net/minecraft/server/level/ServerPlayer.java
 +++ b/src/main/java/net/minecraft/server/level/ServerPlayer.java
 @@ -6,6 +6,7 @@ import com.mojang.datafixers.util.Either;
@@ -724,7 +724,7 @@ index abfbb33e0c0f64d3d21e9c1113f862a5db831b27..d855530b83666747b01de92e6100c099
      private int containerCounter;
      public boolean wonGame;
      private int containerUpdateDelay; // Paper - Configurable container update tick rate
-@@ -268,6 +269,17 @@ public class ServerPlayer extends net.minecraft.world.entity.player.Player imple
+@@ -268,6 +269,18 @@ public class ServerPlayer extends net.minecraft.world.entity.player.Player imple
  
      public int selectedProfileID = 0; // Papyrus
  
@@ -736,13 +736,14 @@ index abfbb33e0c0f64d3d21e9c1113f862a5db831b27..d855530b83666747b01de92e6100c099
 +        this.maxHealthCache = this.getMaxHealth();
 +        this.chunkTrackingView = ChunkTrackingView.EMPTY;
 +        this.lastSectionPos = SectionPos.of(0, 0, 0);
++        this.gameMode = server.createGameModeForPlayer(this);
 +        moonrise$setRealPlayer(false);
 +    }
 +
      public ServerPlayer(MinecraftServer server, ServerLevel world, GameProfile profile, ClientInformation clientOptions) {
          super(world, world.getSharedSpawnPos(), world.getSharedSpawnAngle(), profile);
          this.chatVisibility = ChatVisiblity.FULL;
-@@ -2352,7 +2364,7 @@ public class ServerPlayer extends net.minecraft.world.entity.player.Player imple
+@@ -2352,7 +2365,7 @@ public class ServerPlayer extends net.minecraft.world.entity.player.Player imple
          if (this.gameMode.getGameModeForPlayer() == GameType.SPECTATOR) {
              this.setCamera(target);
          } else {
@@ -751,7 +752,7 @@ index abfbb33e0c0f64d3d21e9c1113f862a5db831b27..d855530b83666747b01de92e6100c099
          }
  
      }
-@@ -2882,4 +2894,3 @@ public class ServerPlayer extends net.minecraft.world.entity.player.Player imple
+@@ -2882,4 +2895,3 @@ public class ServerPlayer extends net.minecraft.world.entity.player.Player imple
      }
      // CraftBukkit end
  }
