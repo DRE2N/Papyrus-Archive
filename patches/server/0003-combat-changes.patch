@@ -781,7 +781,7 @@ index befeaac4786760f6847a5945da2296a3e68dbb17..e756b0229ffd094c44ac40de08489f3b
                                      }
                                  }
 diff --git a/src/main/java/net/minecraft/server/players/PlayerList.java b/src/main/java/net/minecraft/server/players/PlayerList.java
-index c13922d2fb1c15f895b14d4cb6d5379b59ea1ef8..01ca168ebec6ddb12b1b6a104a3600378e146a30 100644
+index c13922d2fb1c15f895b14d4cb6d5379b59ea1ef8..ae090986754668c55b9cd0d67c44b4d1e112c379 100644
 --- a/src/main/java/net/minecraft/server/players/PlayerList.java
 +++ b/src/main/java/net/minecraft/server/players/PlayerList.java
 @@ -25,6 +25,8 @@ import java.util.UUID;
@@ -793,7 +793,29 @@ index c13922d2fb1c15f895b14d4cb6d5379b59ea1ef8..01ca168ebec6ddb12b1b6a104a360037
  import net.minecraft.ChatFormatting;
  import net.minecraft.FileUtil;
  import net.minecraft.commands.CommandSourceStack;
-@@ -552,7 +554,12 @@ public abstract class PlayerList {
+@@ -102,6 +104,7 @@ import net.minecraft.world.phys.Vec3;
+ import net.minecraft.world.scores.DisplaySlot;
+ import net.minecraft.world.scores.Objective;
+ import net.minecraft.world.scores.PlayerTeam;
++import org.bukkit.event.player.*;
+ import org.slf4j.Logger;
+ 
+ // CraftBukkit start
+@@ -115,13 +118,7 @@ import org.bukkit.craftbukkit.util.CraftChatMessage;
+ import org.bukkit.craftbukkit.util.CraftLocation;
+ import org.bukkit.entity.Player;
+ import org.bukkit.event.entity.EntityRemoveEvent;
+-import org.bukkit.event.player.PlayerChangedWorldEvent;
+-import org.bukkit.event.player.PlayerJoinEvent;
+-import org.bukkit.event.player.PlayerLoginEvent;
+-import org.bukkit.event.player.PlayerQuitEvent;
+-import org.bukkit.event.player.PlayerRespawnEvent;
+ import org.bukkit.event.player.PlayerRespawnEvent.RespawnReason;
+-import org.bukkit.event.player.PlayerSpawnChangeEvent;
+ // CraftBukkit end
+ 
+ public abstract class PlayerList {
+@@ -552,7 +549,12 @@ public abstract class PlayerList {
          });
      }
  
@@ -807,7 +829,7 @@ index c13922d2fb1c15f895b14d4cb6d5379b59ea1ef8..01ca168ebec6ddb12b1b6a104a360037
          CompoundTag nbttagcompound = this.server.getWorldData().getLoadedPlayerTag();
          Optional optional;
  
-@@ -561,7 +568,7 @@ public abstract class PlayerList {
+@@ -561,7 +563,7 @@ public abstract class PlayerList {
              player.load(nbttagcompound);
              PlayerList.LOGGER.debug("loading single player");
          } else {
@@ -816,7 +838,7 @@ index c13922d2fb1c15f895b14d4cb6d5379b59ea1ef8..01ca168ebec6ddb12b1b6a104a360037
          }
  
          return optional;
-@@ -570,7 +577,7 @@ public abstract class PlayerList {
+@@ -570,7 +572,7 @@ public abstract class PlayerList {
      protected void save(ServerPlayer player) {
          if (!player.getBukkitEntity().isPersistent()) return; // CraftBukkit
          player.lastSave = MinecraftServer.currentTick; // Paper - Incremental chunk and player saving
@@ -825,7 +847,7 @@ index c13922d2fb1c15f895b14d4cb6d5379b59ea1ef8..01ca168ebec6ddb12b1b6a104a360037
          ServerStatsCounter serverstatisticmanager = (ServerStatsCounter) player.getStats(); // CraftBukkit
  
          if (serverstatisticmanager != null) {
-@@ -1562,4 +1569,15 @@ public abstract class PlayerList {
+@@ -1562,4 +1564,21 @@ public abstract class PlayerList {
      public boolean isAllowCommandsForAllPlayers() {
          return this.allowCommandsForAllPlayers;
      }
@@ -833,11 +855,17 @@ index c13922d2fb1c15f895b14d4cb6d5379b59ea1ef8..01ca168ebec6ddb12b1b6a104a360037
 +    // Papyrus
 +    public void switchProfile(ServerPlayer player, int newID) {
 +        save(player);
++        Level oldLevel = player.level();
 +        int oldID = player.selectedProfileID;
 +        player.selectedProfileID = newID;
 +        load(player, newID);
-+        player.teleportTo((ServerLevel) player.level(), player.getX(), player.getY(), player.getZ(), player.getYRot(), player.getXRot());
++        if (oldLevel != player.level()) {
++            player.changeDimension(new DimensionTransition((ServerLevel) player.level(), player.position(), Vec3.ZERO, player.getYRot(), player.getXRot(), DimensionTransition.DO_NOTHING));
++        } else {
++            player.moveTo(player.getX(), player.getY(), player.getZ(), player.getYRot(), player.getXRot());
++        }
 +        player.setGameMode(player.gameMode.getGameModeForPlayer()); // Client desyncs otherwise
++        player.onUpdateAbilities();
 +        new PlayerSwitchProfileEvent(player.getBukkitEntity(), oldID, newID).callEvent();
 +    }
  }
